@@ -123,6 +123,27 @@ h1 { font: 800 19px/1.1 var(--font-display); margin: 0; letter-spacing: -.01em; 
 .link:hover { background: var(--panel-2); }
 .link svg { width: 18px; height: 18px; }
 
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips label { position: relative; display: inline-flex; align-items: center; gap: 6px; padding: 7px 11px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--panel); font-size: 13px; font-weight: 600; cursor: pointer; color: var(--muted); }
+.chips input { position: absolute; opacity: 0; pointer-events: none; }
+.chips label::before { content: ""; width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid var(--muted); flex: none; }
+.chips label:has(input:checked) { border-color: var(--accent); color: var(--fg); }
+.chips label:has(input:checked)::before { background: var(--accent); border-color: var(--accent); box-shadow: inset 0 0 0 2px var(--panel); }
+.chips label:has(input:focus-visible) { outline: 2px solid var(--accent); }
+.hz-sum { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 12px; background: var(--panel-2); font-size: 13px; }
+.hz-sum b { display: block; font-size: 14px; }
+.hz-ico { flex: none; width: 30px; height: 30px; border-radius: 50%; border: 3px solid #d32f2f; background: #fff; color: #111; display: grid; place-items: center; font: 800 10px var(--font-display); }
+ol.hz { list-style: none; margin: 0; padding: 0; }
+ol.hz li { display: grid; grid-template-columns: 44px 1fr auto; gap: 10px; align-items: center; padding: 7px 2px; border-top: 1px solid var(--line); cursor: pointer; font-size: 13px; }
+ol.hz .tag { font: 800 12px var(--font-display); text-align: center; border-radius: 8px; padding: 4px 0; }
+.tag.low { background: #d32f2f; color: #fff; }
+.tag.tight { background: #f59e0b; color: #1b1200; }
+.tag.ok { background: var(--panel-2); color: var(--fg); }
+.tag.unk { background: #fde68a; color: #4a3500; }
+ol.hz .d { color: var(--muted); font-variant-numeric: tabular-nums; }
+#b-haz { position: fixed; z-index: 21; left: 50%; transform: translateX(-50%); top: calc(150px + env(safe-area-inset-top, 0px)); background: #f59e0b; color: #1b1200; font-weight: 700; padding: 8px 14px; border-radius: 999px; box-shadow: var(--shadow); font-size: 15px; white-space: nowrap; }
+#b-haz.low { background: #d32f2f; color: #fff; }
+.seg.three { grid-template-columns: 1fr 1fr 1fr; }
 .seg { display: grid; grid-template-columns: 1fr 1fr; background: var(--panel-2); border-radius: 12px; padding: 4px; gap: 4px; }
 .seg label { position: relative; text-align: center; padding: 8px 6px; border-radius: 9px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--muted); }
 .seg input { position: absolute; opacity: 0; pointer-events: none; }
@@ -285,10 +306,32 @@ body.nav .maplibregl-ctrl-top-right { display: none; }
     </div>
 
     <div class="collapsible">
-      <div class="seg" role="radiogroup" aria-label="Výběr silnic">
-        <label><input type="radio" name="pref" value="main" checked>Dálnice a I. třídy</label>
+      <div class="seg three" role="radiogroup" aria-label="Typ trasy">
+        <label><input type="radio" name="pref" value="main" checked>Hlavní silnice</label>
         <label><input type="radio" name="pref" value="fast">Nejrychlejší</label>
+        <label><input type="radio" name="pref" value="short">Nejkratší</label>
       </div>
+
+      <details class="box" id="opt-box">
+        <summary>Silnice a poplatky <span class="sum-r" id="opt-sum"></span></summary>
+        <div class="inner">
+          <div class="lbl">Používat silnice</div>
+          <div class="chips">
+            <label><input type="checkbox" id="r-motorway" checked>Dálnice</label>
+            <label><input type="checkbox" id="r-primary" checked>I. třída</label>
+            <label><input type="checkbox" id="r-secondary" checked>II. třída</label>
+            <label><input type="checkbox" id="r-tertiary" checked>III. třída</label>
+          </div>
+          <p class="hint">Vypnuté třídy navigace použije jen tam, kde to jinak nejde (třeba na začátku a konci cesty).</p>
+          <div class="lbl">Vyhnout se</div>
+          <div class="chips">
+            <label><input type="checkbox" id="a-toll">Placené úseky a tunely</label>
+            <label><input type="checkbox" id="a-ferry">Trajekty</label>
+            <label><input type="checkbox" id="a-unpaved" checked>Nezpevněné cesty</label>
+          </div>
+          <p class="hint">Placené tunely (třeba v Rakousku Tauern, Arlberg, Karawanky) se objedou, pokud jsou v mapě označené jako placené. Když jinudy cesta nevede, projede se jimi.</p>
+        </div>
+      </details>
 
       <div id="out" class="result" aria-live="polite"></div>
 
@@ -316,6 +359,7 @@ body.nav .maplibregl-ctrl-top-right { display: none; }
           <div><label class="lbl" for="voice">Hlas</label><select class="inp" id="voice"></select></div>
           <div><label class="lbl" for="rate">Rychlost řeči</label><select class="inp" id="rate">
             <option value="1">Normální</option><option value="1.15">Rychlejší</option><option value="1.3">Rychlá</option></select></div>
+          <div class="chips"><label><input type="checkbox" id="hz-unknown" checked>Hlásit i podjezdy bez údaje o výšce</label></div>
           <button class="btn small sec" id="voice-test">Vyzkoušet hlas</button>
           <p class="hint" id="voice-note"></p>
         </div>
@@ -329,6 +373,7 @@ body.nav .maplibregl-ctrl-top-right { display: none; }
   <div style="min-width:0"><div id="b-dist"></div><div id="b-text"></div></div>
   <div id="b-then" hidden></div>
 </div>
+<div id="b-haz" hidden></div>
 <div id="speed" hidden><div><b id="spd">0</b><small>km/h</small></div></div>
 <button id="recenter" hidden><svg class="i" viewBox="0 0 24 24"><path d="M12 3 4 21l8-4 8 4z"/></svg>Vycentrovat</button>
 <div id="navbar" hidden>
@@ -345,7 +390,7 @@ function startApp() {
   "use strict";
   var VALHALLA = "https://valhalla1.openstreetmap.de";
   var PHOTON = "https://photon.komoot.io";
-  var CZ_BBOX = "12.09,48.55,18.87,51.06";
+  var OVERPASS = ["https://overpass-api.de/api/interpreter", "https://maps.mail.ru/osm/tools/overpass/api/interpreter", "https://overpass.private.coffee/api/interpreter", "https://overpass.kumi.systems/api/interpreter"];
   var $ = function (id) { return document.getElementById(id); };
   function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
   function cssVar(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
@@ -458,8 +503,8 @@ function startApp() {
   var map = new maplibregl.Map({
     container: "map",
     style: "https://tiles.openfreemap.org/styles/" + (dark ? "dark" : "liberty"),
-    center: [15.45, 49.8], zoom: 6.4, minZoom: 5.5,
-    maxBounds: [[10.5, 47.6], [20.4, 51.9]],
+    center: [15.45, 49.8], zoom: 6.4, minZoom: 4,
+    maxBounds: [[-12, 34], [35, 62]],
     attributionControl: { compact: true }
   });
   map.addControl(new maplibregl.NavigationControl({ showCompass: true }), "top-right");
@@ -482,6 +527,18 @@ function startApp() {
       map.addLayer({ id: "done-line", type: "line", source: "done", layout: round, paint: { "line-color": "#9aa6b2", "line-width": w(3.5, 11) } }, before);
       map.addLayer({ id: "route-casing", type: "line", source: "route", layout: round, paint: { "line-color": "#ffffff", "line-width": w(6.5, 17) } }, before);
       map.addLayer({ id: "route-line", type: "line", source: "route", layout: round, paint: { "line-color": ["get", "color"], "line-width": w(3.5, 11) } }, before);
+      // značky výšek: všechny v okolí (mh) a ty na trase (hz)
+      map.addSource("mh", { type: "geojson", data: empty });
+      map.addSource("hz", { type: "geojson", data: empty });
+      var signColor = ["match", ["get", "cls"], "low", "#d32f2f", "tight", "#f59e0b", "unk", "#f5c518", "#ffffff"];
+      ["mh", "hz"].forEach(function (src) {
+        map.addLayer({ id: src + "-sign", type: "circle", source: src, minzoom: src === "mh" ? 12 : 8,
+          paint: { "circle-radius": ["interpolate", ["linear"], ["zoom"], 8, 7, 16, 15], "circle-color": signColor, "circle-stroke-color": ["match", ["get", "cls"], "unk", "#7a5b00", "#d32f2f"], "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 8, 2, 16, 3.5] } });
+        map.addLayer({ id: src + "-text", type: "symbol", source: src, minzoom: src === "mh" ? 13 : 11,
+          layout: { "text-field": ["get", "t"], "text-font": ["Noto Sans Bold"], "text-size": ["interpolate", ["linear"], ["zoom"], 11, 9, 16, 12], "text-allow-overlap": true },
+          paint: { "text-color": ["match", ["get", "cls"], "low", "#ffffff", "#111111"] } });
+      });
+      map.on("moveend", loadAreaHeights);
       map.on("click", "alts-line", function (e) {
         var i = e.features[0].properties.idx;
         if (state.legs.length === 1) { state.legs[0].sel = i; buildPlan(); render(false); }
@@ -620,7 +677,7 @@ function startApp() {
       if (q.length < 3) { items = []; close(); return; }
       timer = setTimeout(function () {
         var my = ++seq, c = map.getCenter();
-        fetch(PHOTON + "/api/?q=" + encodeURIComponent(q) + "&limit=8&bbox=" + CZ_BBOX + "&lat=" + c.lat.toFixed(3) + "&lon=" + c.lng.toFixed(3))
+        fetch(PHOTON + "/api/?q=" + encodeURIComponent(q) + "&limit=8&lat=" + c.lat.toFixed(3) + "&lon=" + c.lng.toFixed(3))
           .then(function (r) { return r.json(); })
           .then(function (j) {
             if (my !== seq) return;
@@ -708,10 +765,35 @@ function startApp() {
     $("psave-msg").textContent = "Vozidlo smazáno."; autoRoute();
   });
   $("veh-chip").addEventListener("click", function () { $("panel").classList.remove("min"); $("veh-box").open = true; $("veh-box").scrollIntoView({ behavior: "smooth", block: "nearest" }); });
+  // ---------- možnosti trasy ----------
+  var ROAD_KEYS = ["motorway", "primary", "secondary", "tertiary"];
+  var routeOpts = load("navigace-trasa") || { mode: "main", roads: { motorway: true, primary: true, secondary: true, tertiary: true }, avoid: { toll: false, ferry: false, unpaved: true } };
+  function applyRouteOpts() {
+    document.querySelector('input[name="pref"][value="' + routeOpts.mode + '"]').checked = true;
+    ROAD_KEYS.forEach(function (k) { $("r-" + k).checked = routeOpts.roads[k] !== false; });
+    ["toll", "ferry", "unpaved"].forEach(function (k) { $("a-" + k).checked = !!routeOpts.avoid[k]; });
+    var off = ROAD_KEYS.filter(function (k) { return !routeOpts.roads[k]; }).length;
+    var av = ["toll", "ferry", "unpaved"].filter(function (k) { return routeOpts.avoid[k]; }).length;
+    $("opt-sum").textContent = (off ? off + " tř. vypnuto" : "všechny třídy") + (av ? " · " + av + "× vyhnout" : "");
+  }
+  function readRouteOpts() {
+    routeOpts.mode = document.querySelector('input[name="pref"]:checked').value;
+    ROAD_KEYS.forEach(function (k) { routeOpts.roads[k] = $("r-" + k).checked; });
+    ["toll", "ferry", "unpaved"].forEach(function (k) { routeOpts.avoid[k] = $("a-" + k).checked; });
+    save("navigace-trasa", routeOpts); applyRouteOpts(); autoRoute();
+  }
+  document.querySelectorAll('input[name="pref"], #opt-box input').forEach(function (x) { x.addEventListener("change", readRouteOpts); });
   function costing() {
-    var p = findProfile(vehicles.current);
-    if (p.car) return { name: "auto", opts: { use_highways: 1 } };
-    return { name: "truck", opts: { height: num("h"), width: num("w"), length: num("l"), weight: num("t"), use_highways: 1 } };
+    var p = findProfile(vehicles.current), o = {
+      use_highways: routeOpts.roads.motorway ? (routeOpts.mode === "short" ? 0.5 : 1) : 0,
+      use_tolls: routeOpts.avoid.toll ? 0 : 0.5,
+      use_ferry: routeOpts.avoid.ferry ? 0 : 0.5,
+      exclude_unpaved: !!routeOpts.avoid.unpaved
+    };
+    if (routeOpts.mode === "short") o.shortest = true;
+    if (p.car) return { name: "auto", opts: o, car: true };
+    o.height = num("h"); o.width = num("w"); o.length = num("l"); o.weight = num("t");
+    return { name: "truck", opts: o };
   }
 
   // ---------- hlas ----------
@@ -750,6 +832,8 @@ function startApp() {
     u.rate = voiceCfg.rate; u.pitch = 1.05; u.volume = 1;
     synth.speak(u);
   }
+  $("hz-unknown").checked = voiceCfg.hzUnknown !== false;
+  $("hz-unknown").addEventListener("change", function () { voiceCfg.hzUnknown = this.checked; save("navigace-hlas", voiceCfg); });
   if (synth) { loadVoices(); synth.onvoiceschanged = loadVoices; }
   else { $("voice-note").textContent = "Tenhle prohlížeč neumí mluvit. Zkus Chrome, Edge nebo Safari."; }
   $("voice").addEventListener("change", function () { voiceCfg.name = this.value; save("navigace-hlas", voiceCfg); loadVoices(); });
@@ -785,15 +869,21 @@ function startApp() {
     }).catch(function () { trip.km = null; trip.segs = null; });
   }
   function score(t) {
-    if (!t.km) return t.summary.time * 1.5;
-    var tot = 0, w = 0; GROUPS.forEach(function (g) { tot += t.km[g.key]; w += t.km[g.key] * g.mult; });
-    return t.summary.time * (tot ? w / tot : 1);
+    var base = routeOpts.mode === "short" ? t.summary.length * 60 : t.summary.time;
+    if (!t.km) return base * 1.5;
+    var tot = 0, w = 0, off = 0;
+    GROUPS.forEach(function (g) {
+      tot += t.km[g.key];
+      w += t.km[g.key] * (routeOpts.mode === "main" ? g.mult : 1);
+      if (routeOpts.roads[g.key] === false) off += t.km[g.key];
+    });
+    if (!tot) return base;
+    return base * (w / tot) * (1 + 8 * off / tot);
   }
   function mainShare(t) {
     if (!t.km) return null; var tot = 0; GROUPS.forEach(function (g) { tot += t.km[g.key]; });
     return tot ? (t.km.motorway + t.km.primary) / tot : null;
   }
-  function pref() { return document.querySelector('input[name="pref"]:checked').value; }
   function routeLeg(a, b, c) {
     var from = { lat: a.lat, lon: a.lon };
     if (a.heading != null) { from.heading = a.heading; from.heading_tolerance = 60; }
@@ -805,7 +895,7 @@ function startApp() {
       trips.forEach(function (t, i) { t.idx = i; t.pts = decode(t.legs[0].shape); });
       return Promise.all(trips.map(function (t) { return classify(t, c); })).then(function () {
         var sel = 0;
-        if (pref() === "main") trips.forEach(function (t, i) { if (score(t) < score(trips[sel])) sel = i; });
+        trips.forEach(function (t, i) { if (score(t) < score(trips[sel])) sel = i; });
         return { trips: trips, sel: sel };
       });
     });
@@ -863,10 +953,274 @@ function startApp() {
       return false;
     });
   }
-  document.querySelectorAll('input[name="pref"]').forEach(function (r) { r.addEventListener("change", autoRoute); });
   function clearRoute() {
-    busy++; state.legs = []; state.plan = null; $("out").textContent = "";
-    mapReady.then(function () { ["alts", "route", "done"].forEach(function (s) { map.getSource(s).setData({ type: "FeatureCollection", features: [] }); }); });
+    busy++; hzSeq++; state.legs = []; state.plan = null; $("out").textContent = "";
+    mapReady.then(function () { ["alts", "route", "done", "hz"].forEach(function (s) { map.getSource(s).setData({ type: "FeatureCollection", features: [] }); }); });
+  }
+
+  // ---------- výšky mostů a podjezdů (OpenStreetMap přes Overpass) ----------
+  function overpass(q, ms) {
+    var i = 0;
+    function tryNext() {
+      // každý server se zkusí až dvakrát, servery bývají přetížené
+      if (i >= OVERPASS.length * 2) return Promise.reject(new Error("overpass"));
+      var url = OVERPASS[i++ % OVERPASS.length], ctl = new AbortController(), t = setTimeout(function () { ctl.abort(); }, ms || 45000);
+      return fetch(url, { method: "POST", body: "data=" + encodeURIComponent(q), headers: { "Content-Type": "application/x-www-form-urlencoded" }, signal: ctl.signal })
+        .then(function (r) { clearTimeout(t); if (!r.ok) throw new Error(r.status); return r.json(); })
+        .catch(function () { clearTimeout(t); return tryNext(); });
+    }
+    return tryNext();
+  }
+  // "3.8", "3,8 m", "12'6\"", "default", "none"
+  function parseH(v) {
+    if (!v) return null;
+    v = String(v).trim().toLowerCase();
+    if (/^(default|none|unsigned|no_sign|no)$/.test(v)) return { none: true };
+    var ft = v.match(/^(\d+)\s*'\s*(\d+)?/);
+    if (ft) return { h: Math.round((+ft[1] * 0.3048 + (+(ft[2] || 0)) * 0.0254) * 100) / 100 };
+    var x = parseFloat(v.replace(",", "."));
+    return isFinite(x) && x > 0.5 && x < 10 ? { h: x } : null;
+  }
+  function vehHeight() { var c = costing(); return c.car ? null : c.opts.height || null; }
+  function hzClass(it, vh) {
+    if (it.h == null) return it.none ? "ok" : "unk";
+    if (vh && it.h < vh + 0.05) return "low";
+    if (vh && it.h < vh + 0.4) return "tight";
+    return "ok";
+  }
+  function sayHeight(h) {
+    var s = String(Math.round(h * 100) / 100).replace(".", ",");
+    if (s.indexOf(",") >= 0) return s + " metru";
+    return s + (+s < 5 ? " metry" : " metrů");
+  }
+  // zjednodušení čáry trasy (Douglas–Peucker, tolerance v metrech)
+  function simplify(pts, tol) {
+    var keep = new Uint8Array(pts.length); keep[0] = keep[pts.length - 1] = 1;
+    var stack = [[0, pts.length - 1]];
+    while (stack.length) {
+      var s = stack.pop(), a = s[0], b = s[1], best = 0, idx = -1;
+      for (var i = a + 1; i < b; i++) { var d = project(pts[i], pts[a], pts[b]).d; if (d > best) { best = d; idx = i; } }
+      if (best > tol && idx > 0) { keep[idx] = 1; stack.push([a, idx], [idx, b]); }
+    }
+    return pts.filter(function (p, i) { return keep[i]; });
+  }
+  function toXY(p, k) { return [p[1] * k * 111320, p[0] * 111320]; }
+  function crossing(a, b, c, d) {
+    var r = [b[0] - a[0], b[1] - a[1]], s = [d[0] - c[0], d[1] - c[1]], den = r[0] * s[1] - r[1] * s[0];
+    if (Math.abs(den) < 1e-9) return null;
+    var t = ((c[0] - a[0]) * s[1] - (c[1] - a[1]) * s[0]) / den, u = ((c[0] - a[0]) * r[1] - (c[1] - a[1]) * r[0]) / den;
+    if (t < 0 || t > 1 || u < 0 || u > 1) return null;
+    var ang = Math.abs(Math.atan2(den, r[0] * s[0] + r[1] * s[1]) * 180 / Math.PI); ang = Math.min(ang, 180 - ang);
+    return ang > 25 ? t : null;
+  }
+  function overLabel(tg) {
+    if (tg.railway) return "železnice";
+    if (/^(motorway|trunk)/.test(tg.highway || "")) return "dálnice / silnice";
+    if (/^(footway|cycleway|path|pedestrian|steps)/.test(tg.highway || "")) return "lávka";
+    if (tg.highway) return "silnice";
+    if (tg.waterway) return "vodní kanál";
+    return "most";
+  }
+  var hzSeq = 0;
+  function checkHazards(keep) {
+    var plan = state.plan, c = costing();
+    if (!plan || c.car) { renderHazards(); return; }
+    var my = ++hzSeq;
+    if (!keep) { plan.hz = null; plan.hzState = "loading"; renderHazards(); drawHazards(); }
+    var simp = simplify(plan.pts, 8), chunks = [];
+    for (var i = 0; i < simp.length - 1; i += 220) chunks.push(simp.slice(i, Math.min(simp.length, i + 221)));
+    var elements = [], seen = {};
+    var run = chunks.reduce(function (pr, ch) {
+      return pr.then(function () {
+        if (my !== hzSeq) return;
+        var line = ch.map(function (p) { return p[0].toFixed(5) + "," + p[1].toFixed(5); }).join(",");
+        var q = '[out:json][timeout:60];(nwr["maxheight"](around:25,' + line + ');nwr["maxheight:physical"](around:25,' + line + ');way["bridge"]["bridge"!="no"](around:20,' + line + ');way["tunnel"]["tunnel"!="no"](around:10,' + line + '););out tags geom;';
+        return overpass(q, 70000).then(function (j) {
+          (j.elements || []).forEach(function (e) { var key = e.type + e.id; if (!seen[key]) { seen[key] = 1; elements.push(e); } });
+        });
+      });
+    }, Promise.resolve());
+    run.then(function () {
+      if (my !== hzSeq || state.plan !== plan) return;
+      plan.hz = analyse(plan, elements); plan.hzState = "done";
+      renderHazards(); drawHazards();
+    }).catch(function () {
+      if (my !== hzSeq || state.plan !== plan) return;
+      if (keep) return;
+      plan.hzState = "error"; renderHazards();
+    });
+  }
+  function hazardGuidance(along, v) {
+    var plan = state.plan, items = plan.hz, chip = $("b-haz");
+    if (!items || !items.length) { chip.hidden = true; return; }
+    var vh = vehHeight(), idx = -1;
+    for (var i = 0; i < items.length; i++) { if (items[i].along > along - 5) { idx = i; break; } }
+    if (idx < 0) { chip.hidden = true; return; }
+    var it = items[idx], dist = Math.max(0, it.along - along), cls = hzClass(it, vh);
+    var relevant = cls === "low" || cls === "tight" || (cls === "unk" && $("hz-unknown").checked);
+    if (!relevant || dist > 1000) { chip.hidden = true; return; }
+    chip.hidden = false; chip.className = cls === "low" ? "low" : "";
+    chip.textContent = "Podjezd " + (it.h != null ? n(it.h) + " m" : "bez údaje") + " · za " + fmtDist(dist);
+    chip.style.top = ($("banner").getBoundingClientRect().bottom + 8) + "px";
+    var warnD = v > 22 ? 700 : 400;
+    if (!nav.spoken["h" + idx] && dist <= warnD) {
+      nav.spoken["h" + idx] = true;
+      var t = cls === "low" ? "Pozor! Za " + sayDist(dist) + " podjezd s výškou " + sayHeight(it.h) + ". Vozidlo je vyšší!"
+        : cls === "tight" ? "Pozor, za " + sayDist(dist) + " podjezd s výškou " + sayHeight(it.h) + "."
+        : "Pozor, za " + sayDist(dist) + " podjezd bez údaje o výšce. Sleduj značku.";
+      say(t, true);
+    }
+  }
+  function geomOf(e) {
+    if (e.geometry) return e.geometry.map(function (g) { return [g.lat, g.lon]; });
+    if (e.lat != null) return [[e.lat, e.lon]];
+    if (e.center) return [[e.center.lat, e.center.lon]];
+    return [];
+  }
+  function analyse(plan, els) {
+    var pts = plan.pts, cum = plan.cum, k = Math.cos(rad(pts[0][0])), R = pts.map(function (p) { return toXY(p, k); });
+    var items = [], limits = [];
+    // výšková omezení ležící na naší trase (rovnoběžně s ní), ne na silnici, která ji kříží
+    els.forEach(function (e) {
+      var tg = e.tags || {}, ph = parseH(tg["maxheight:physical"]) || parseH(tg.maxheight);
+      if (!ph) return;
+      var g = geomOf(e); if (!g.length) return;
+      var near = 0, firstAlong = null, firstPt = null;
+      g.forEach(function (p) {
+        var s = nearestOn(plan, p);
+        if (s.d < 15) { near++; if (firstAlong == null || s.along < firstAlong) { firstAlong = s.along; firstPt = s.q; } }
+      });
+      var onRoute = g.length === 1 ? near === 1 : near >= Math.max(2, Math.ceil(g.length * 0.5));
+      if (onRoute) limits.push({ along: firstAlong, pos: firstPt, h: ph.h != null ? ph.h : null, none: !!ph.none, used: false, tunnel: !!tg.tunnel, barrier: tg.barrier });
+    });
+    // mosty, které trasu kříží = podjezdy
+    els.forEach(function (e) {
+      var tg = e.tags || {};
+      if (!tg.bridge || tg.bridge === "no" || !e.geometry) return;
+      var G = geomOf(e).map(function (p) { return toXY(p, k); });
+      var minx = Infinity, maxx = -Infinity, miny = Infinity, maxy = -Infinity;
+      G.forEach(function (p) { minx = Math.min(minx, p[0]); maxx = Math.max(maxx, p[0]); miny = Math.min(miny, p[1]); maxy = Math.max(maxy, p[1]); });
+      for (var j = 0; j < R.length - 1; j++) {
+        var a = R[j], b = R[j + 1];
+        if (Math.max(a[0], b[0]) < minx || Math.min(a[0], b[0]) > maxx || Math.max(a[1], b[1]) < miny || Math.min(a[1], b[1]) > maxy) continue;
+        for (var i = 0; i < G.length - 1; i++) {
+          var t = crossing(a, b, G[i], G[i + 1]);
+          if (t == null) continue;
+          var along = cum[j] + t * (cum[j + 1] - cum[j]);
+          var pos = [pts[j][0] + (pts[j + 1][0] - pts[j][0]) * t, pts[j][1] + (pts[j + 1][1] - pts[j][1]) * t];
+          if (items.some(function (x) { return Math.abs(x.along - along) < 15; })) { i = G.length; break; }
+          var lim = null;
+          limits.forEach(function (l) { if (Math.abs(l.along - along) < 60 && (!lim || l.h != null)) lim = l; });
+          if (lim) lim.used = true;
+          var own = parseH(tg.maxheight);
+          items.push({ along: along, pos: pos, kind: "bridge", over: overLabel(tg), name: tg.name || "",
+            h: lim && lim.h != null ? lim.h : null, none: !!(lim && lim.none) });
+          i = G.length; break;
+        }
+      }
+    });
+    limits.forEach(function (l) {
+      if (l.used || l.none) return;
+      if (items.some(function (x) { return Math.abs(x.along - l.along) < 60; })) return;
+      items.push({ along: l.along, pos: l.pos, kind: l.tunnel ? "tunnel" : l.barrier ? "barrier" : "limit", over: l.tunnel ? "tunel" : l.barrier ? "závora / brána" : "omezení výšky", h: l.h, none: false });
+    });
+    items.sort(function (a, b) { return a.along - b.along; });
+    return items;
+  }
+  function nearestOn(plan, p) {
+    var pts = plan.pts, best = { d: Infinity }, step = pts.length > 4000 ? 1 : 1;
+    // hrubé vyhledání podle vrcholů, pak zpřesnění v okolí
+    var bi = 0, bd = Infinity;
+    for (var i = 0; i < pts.length; i += 4) { var d = Math.abs(pts[i][0] - p[0]) + Math.abs(pts[i][1] - p[1]); if (d < bd) { bd = d; bi = i; } }
+    for (var j = Math.max(0, bi - 8); j < Math.min(pts.length - 1, bi + 8); j++) {
+      var r = project(p, pts[j], pts[j + 1]);
+      if (r.d < best.d) { best = r; best.i = j; }
+    }
+    if (best.i == null) return { d: Infinity };
+    best.along = plan.cum[best.i] + best.t * (plan.cum[best.i + 1] - plan.cum[best.i]);
+    return best;
+  }
+  function hzFeatures(items, vh) {
+    return { type: "FeatureCollection", features: (items || []).map(function (it) {
+      return { type: "Feature", properties: { cls: hzClass(it, vh), t: it.h != null ? n(it.h) : "?" }, geometry: { type: "Point", coordinates: ll(it.pos) } };
+    }) };
+  }
+  function drawHazards() {
+    mapReady.then(function () { map.getSource("hz").setData(hzFeatures(state.plan && state.plan.hz, vehHeight())); });
+  }
+  function renderHazards() {
+    var box = $("hz-box"); if (!box) return;
+    var plan = state.plan; box.textContent = "";
+    if (!plan || costing().car) return;
+    var vh = vehHeight();
+    var sum = el("div", "hz-sum"), ic = el("span", "hz-ico", "↕"), txt = el("div");
+    sum.appendChild(ic); sum.appendChild(txt);
+    if (plan.hzState === "loading") {
+      txt.appendChild(el("b", null, "Kontroluji podjezdy a mosty na trase…"));
+      txt.appendChild(el("span", null, "Trvá to 10–60 vteřin. Navigaci můžeš spustit i mezitím."));
+      box.appendChild(sum); return;
+    }
+    if (plan.hzState === "error") {
+      txt.appendChild(el("b", null, "Kontrola podjezdů se nepovedla"));
+      txt.appendChild(el("span", null, "Server s výškami teď neodpovídá. "));
+      var again = el("button", "link", "Zkusit znovu"); again.addEventListener("click", checkHazards); txt.appendChild(again);
+      box.appendChild(sum); return;
+    }
+    var items = plan.hz || [];
+    var known = items.filter(function (x) { return x.h != null; }), unk = items.filter(function (x) { return x.h == null && !x.none; });
+    var low = items.filter(function (x) { return hzClass(x, vh) === "low"; }), tight = items.filter(function (x) { return hzClass(x, vh) === "tight"; });
+    var minH = known.length ? Math.min.apply(null, known.map(function (x) { return x.h; })) : null;
+    txt.appendChild(el("b", null, items.length ? items.length + " podjezdů a omezení výšky na trase" : "Na trase nejsou žádné známé podjezdy"));
+    var parts = [];
+    if (known.length) parts.push("výška známá u " + known.length + (minH != null ? " (nejnižší " + n(minH) + " m)" : ""));
+    var nolim = items.filter(function (x) { return x.h == null && x.none; });
+    if (nolim.length) parts.push(nolim.length + " bez výškového omezení");
+    if (unk.length) parts.push(unk.length + " bez údaje o výšce – tam dávej pozor na značky");
+    if (low.length) parts.push(low.length + "× NIŽŠÍ než tvoje vozidlo!");
+    else if (tight.length) parts.push(tight.length + "× těsně (méně než 40 cm rezervy)");
+    txt.appendChild(el("span", null, parts.join(" · ")));
+    if (low.length) ic.style.background = "#d32f2f";
+    box.appendChild(sum);
+    if (!items.length) return;
+    var det = el("details", "box"), sm = el("summary", null, "Seznam podjezdů"); sm.appendChild(el("span", "sum-r", String(items.length)));
+    det.appendChild(sm);
+    var inner = el("div", "inner"), ol = el("ol", "hz");
+    items.forEach(function (it) {
+      var li = el("li"), cls = hzClass(it, vh);
+      li.appendChild(el("span", "tag " + cls, it.h != null ? n(it.h) + " m" : "?"));
+      li.appendChild(el("span", null, (it.kind === "bridge" ? "Pod mostem (" + it.over + ")" : it.over.charAt(0).toUpperCase() + it.over.slice(1)) + (it.name ? " – " + it.name : "")));
+      li.appendChild(el("span", "d", fmtKm(it.along / 1000)));
+      li.addEventListener("click", function () { map.flyTo({ center: ll(it.pos), zoom: 17 }); });
+      ol.appendChild(li);
+    });
+    inner.appendChild(ol); det.appendChild(inner); box.appendChild(det);
+  }
+  // výšky v okolí na mapě (od přiblížení 13)
+  var areaCache = {}, areaT = null;
+  function loadAreaHeights() {
+    clearTimeout(areaT);
+    areaT = setTimeout(function () {
+      if (map.getZoom() < 12.5 || nav.active) return;
+      var b = map.getBounds(), z = 13, tiles = [];
+      function tx(lon) { return Math.floor((lon + 180) / 360 * Math.pow(2, z)); }
+      function ty(lat) { var r = rad(lat); return Math.floor((1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2 * Math.pow(2, z)); }
+      for (var x = tx(b.getWest()); x <= tx(b.getEast()); x++) for (var y = ty(b.getNorth()); y <= ty(b.getSouth()); y++) if (!areaCache[x + "/" + y]) tiles.push([x, y]);
+      if (!tiles.length || tiles.length > 16) return;
+      function lon(x) { return x / Math.pow(2, z) * 360 - 180; }
+      function lat(y) { var nn = Math.PI - 2 * Math.PI * y / Math.pow(2, z); return 180 / Math.PI * Math.atan(0.5 * (Math.exp(nn) - Math.exp(-nn))); }
+      var parts = tiles.map(function (t) { areaCache[t[0] + "/" + t[1]] = []; var bb = "(" + lat(t[1] + 1).toFixed(5) + "," + lon(t[0]).toFixed(5) + "," + lat(t[1]).toFixed(5) + "," + lon(t[0] + 1).toFixed(5) + ")"; return 'nwr["maxheight"]' + bb + ';nwr["maxheight:physical"]' + bb + ";"; });
+      overpass("[out:json][timeout:30];(" + parts.join("") + ");out tags center;", 40000).then(function (j) {
+        var key = tiles[0][0] + "/" + tiles[0][1];
+        (j.elements || []).forEach(function (e) {
+          var ph = parseH(e.tags["maxheight:physical"]) || parseH(e.tags.maxheight);
+          if (!ph || ph.h == null) return;
+          var g = e.center ? [e.center.lat, e.center.lon] : [e.lat, e.lon];
+          areaCache[key].push({ pos: g, h: ph.h });
+        });
+        var all = []; Object.keys(areaCache).forEach(function (k2) { all = all.concat(areaCache[k2]); });
+        map.getSource("mh").setData(hzFeatures(all, vehHeight()));
+      }).catch(function () { tiles.forEach(function (t) { delete areaCache[t[0] + "/" + t[1]]; }); });
+    }, 700);
   }
 
   // ---------- vykreslení ----------
@@ -921,7 +1275,10 @@ function startApp() {
     goRow.appendChild(go); goRow.appendChild(sim); out.appendChild(goRow);
 
     var c = costing();
-    if (c.name === "truck") out.appendChild(el("p", "msg warn", "Trasa hlídá výšku " + n(c.opts.height) + " m, šířku " + n(c.opts.width) + " m, délku " + n(c.opts.length) + " m a hmotnost " + n(c.opts.weight) + " t tam, kde jsou omezení v mapě. Dopravní značky mají vždy přednost."));
+    if (c.name === "truck") {
+      var hb = el("div"); hb.id = "hz-box"; hb.style.cssText = "display:flex;flex-direction:column;gap:8px"; out.appendChild(hb);
+      out.appendChild(el("p", "msg warn", "Trasa se vyhýbá místům, kde je v mapě zapsané omezení pod " + n(c.opts.height) + " m výšky, " + n(c.opts.width) + " m šířky, " + n(c.opts.length) + " m délky nebo " + n(c.opts.weight) + " t. U podjezdů bez údaje to navigace vědět nemůže, tam rozhoduje značka."));
+    }
 
     if (state.legs.length === 1 && state.legs[0].trips.length > 1) {
       var leg = state.legs[0], vs = el("div", "variants");
@@ -952,6 +1309,7 @@ function startApp() {
       ol.appendChild(li);
     });
     inner.appendChild(ol); det.appendChild(inner); out.appendChild(det);
+    if (!plan.hzState) checkHazards(); else { renderHazards(); drawHazards(); }
   }
 
   // ---------- navigace ----------
@@ -1009,7 +1367,7 @@ function startApp() {
     try { if (wakeLock) wakeLock.release(); } catch (e) {}
     wakeLock = null;
     document.body.classList.remove("nav");
-    ["banner", "navbar", "speed", "recenter"].forEach(function (id) { $(id).hidden = true; });
+    ["banner", "navbar", "speed", "recenter", "b-haz"].forEach(function (id) { $(id).hidden = true; });
     if (puck) puck.remove();
     syncMarkers();
     map.easeTo({ pitch: 0, bearing: 0, padding: { top: 0, bottom: 0, left: 0, right: 0 }, duration: 400 });
@@ -1123,6 +1481,7 @@ function startApp() {
     var left = plan.cum[plan.cum.length - 1] - along;
     $("n-time").textContent = fmtTime(rest);
     $("n-sub").textContent = fmtKm(left / 1000) + " · příjezd " + clock(rest);
+    hazardGuidance(along, v);
     if (isEnd(m) && k === ms.length - 1 && dist < 25 && !nav.arrived) {
       nav.arrived = true; $("b-dist").textContent = "Cíl"; $("b-text").textContent = "Jste v cíli."; $("n-time").textContent = "V cíli";
     }
@@ -1134,9 +1493,15 @@ function startApp() {
     while (legIdx < plan.legEnds.length - 1 && plan.legEnds[legIdx] < nav.lastIdx) legIdx++;
     var rest = state.stops.slice(legIdx + 1);
     var hd = nav.prevPos ? Math.round(bearing(nav.prevPos, p)) : null;
+    var oldHz = plan.hz || [];
     findRoute({ silent: true, from: { lat: p[0], lon: p[1], heading: hd }, rest: rest }).then(function (ok) {
       nav.rerouting = false;
       if (!ok || !nav.active) return;
+      // známé podjezdy přenést na novou trasu, zbytek dohledat na pozadí
+      var np = state.plan;
+      np.hz = oldHz.map(function (it) { var s = nearestOn(np, it.pos); return s.d < 20 ? Object.assign({}, it, { along: s.along }) : null; })
+        .filter(Boolean).sort(function (a, b) { return a.along - b.along; });
+      np.hzState = "done"; drawHazards(); checkHazards(true);
       nav.lastIdx = 0; nav.off = 0; nav.spoken = { "0n": true, "0f": true }; nav.k = -1; nav.along = 0; nav.lastDraw = null;
       drawProgress(0, p);
     });
@@ -1146,7 +1511,9 @@ function startApp() {
   $("handle").addEventListener("click", function () { $("panel").classList.toggle("min"); });
 
   // ---------- start ----------
+  if (location.protocol === "file:") window.__t = { state: state }; // jen pro testy z disku
   renderProfiles();
+  applyRouteOpts();
   renderStops();
   if (!load("navigace-ukazka")) {
     save("navigace-ukazka", true);
