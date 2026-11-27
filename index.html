@@ -5,258 +5,383 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Navigace pro vozidla</title>
 <meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0f5a43">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Inter:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
 <style>
-/* Rozvržení: panel vlevo (na mobilu pod mapou), mapa vyplňuje zbytek okna. */
+/* Mapa přes celou obrazovku, nad ní plovoucí panel (počítač vlevo, mobil dole). Při navigaci: pruh s pokynem nahoře, stav jízdy dole. */
 :root {
-  --bg: #eef1f4;
+  --bg: #e9eef2;
   --panel: #ffffff;
-  --fg: #17212b;
-  --muted: #5b6875;
-  --line: #d6dde4;
-  --field: #f6f8fa;
-  --accent: #1f4fa8;
+  --panel-2: #f3f6f9;
+  --fg: #0f1d2a;
+  --muted: #5d6b78;
+  --line: #dfe6ec;
+  --accent: #0b6bcb;
   --accent-fg: #ffffff;
-  --warn-bg: #fff6e0;
-  --warn-fg: #6b4a00;
-  --err-bg: #fdeceb;
-  --err-fg: #8a1f17;
-  --c-motorway: #1f4fa8;
-  --c-primary: #1d8a4e;
-  --c-secondary: #e0a100;
-  --c-tertiary: #e26a12;
-  --c-minor: #c62828;
-  --font-display: "Barlow Semi Condensed", "Arial Narrow", Arial, sans-serif;
+  --go: #0f7a55;
+  --go-fg: #ffffff;
+  --stop: #c9342b;
+  --banner: #0f5a43;
+  --banner-fg: #ffffff;
+  --warn-bg: #fff4dc; --warn-fg: #6a4800;
+  --err-bg: #fde9e7; --err-fg: #8d1d15;
+  --c-motorway: #2464d6;
+  --c-primary: #12a05f;
+  --c-secondary: #e5a400;
+  --c-tertiary: #ea6c14;
+  --c-minor: #d33b3b;
+  --shadow: 0 10px 30px rgba(15, 29, 42, .18), 0 2px 6px rgba(15, 29, 42, .08);
+  --font-display: "Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif;
   --font-body: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --r: 16px;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0f151b; --panel: #161e26; --fg: #e6ecf1; --muted: #93a1ae; --line: #2a3540;
-    --field: #1d2731; --accent: #5b8ef0; --accent-fg: #0b1220;
-    --warn-bg: #33290f; --warn-fg: #f3d58a; --err-bg: #3a1714; --err-fg: #ffb4ab;
-    --c-motorway: #5b8ef0; --c-primary: #3cba74; --c-secondary: #f2c230; --c-tertiary: #f2873a; --c-minor: #ef5350;
+    --bg: #0c1218; --panel: #141c24; --panel-2: #1b2530; --fg: #e8eef3; --muted: #95a3b0; --line: #26323e;
+    --accent: #4f9bff; --accent-fg: #06121f; --go: #23b07c; --go-fg: #04150e; --stop: #ef5b50;
+    --banner: #13664c; --banner-fg: #ffffff;
+    --warn-bg: #352a0c; --warn-fg: #f5d68b; --err-bg: #3b1613; --err-fg: #ffb3aa;
+    --c-motorway: #5b93ff; --c-primary: #2fc47f; --c-secondary: #f3c234; --c-tertiary: #f78a3d; --c-minor: #f0605a;
+    --shadow: 0 10px 30px rgba(0, 0, 0, .5), 0 2px 6px rgba(0, 0, 0, .3);
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0f151b; --panel: #161e26; --fg: #e6ecf1; --muted: #93a1ae; --line: #2a3540;
-  --field: #1d2731; --accent: #5b8ef0; --accent-fg: #0b1220;
-  --warn-bg: #33290f; --warn-fg: #f3d58a; --err-bg: #3a1714; --err-fg: #ffb4ab;
-  --c-motorway: #5b8ef0; --c-primary: #3cba74; --c-secondary: #f2c230; --c-tertiary: #f2873a; --c-minor: #ef5350;
+  --bg: #0c1218; --panel: #141c24; --panel-2: #1b2530; --fg: #e8eef3; --muted: #95a3b0; --line: #26323e;
+  --accent: #4f9bff; --accent-fg: #06121f; --go: #23b07c; --go-fg: #04150e; --stop: #ef5b50;
+  --banner: #13664c; --banner-fg: #ffffff;
+  --warn-bg: #352a0c; --warn-fg: #f5d68b; --err-bg: #3b1613; --err-fg: #ffb3aa;
+  --c-motorway: #5b93ff; --c-primary: #2fc47f; --c-secondary: #f3c234; --c-tertiary: #f78a3d; --c-minor: #f0605a;
+  --shadow: 0 10px 30px rgba(0, 0, 0, .5), 0 2px 6px rgba(0, 0, 0, .3);
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
-html, body { height: 100%; margin: 0; }
-body {
-  background: var(--bg); color: var(--fg);
-  font: 14px/1.45 var(--font-body);
-  display: grid; grid-template-columns: 380px 1fr;
+html, body { height: 100%; margin: 0; overflow: hidden; }
+body { background: var(--bg); color: var(--fg); font: 15px/1.45 var(--font-body); -webkit-tap-highlight-color: transparent; }
+#map { position: fixed; inset: 0; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+svg.i { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ---------- panel ---------- */
+#panel {
+  position: fixed; z-index: 10; top: calc(16px + env(safe-area-inset-top, 0px)); left: max(16px, env(safe-area-inset-left, 0px));
+  width: 400px; max-height: calc(100% - 32px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  background: var(--panel); border-radius: var(--r); box-shadow: var(--shadow);
+  display: flex; flex-direction: column; overflow: hidden;
 }
-aside {
-  background: var(--panel); border-right: 1px solid var(--line);
-  overflow-y: auto; min-width: 0;
-  padding-block: 18px 24px;
-  padding-left: max(16px, env(safe-area-inset-left, 0px));
-  padding-right: 16px;
-  display: flex; flex-direction: column; gap: 18px;
+#panel .scroll { overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 16px; overscroll-behavior: contain; }
+.collapsible { display: flex; flex-direction: column; gap: 16px; }
+.handle { display: none; }
+.head { display: flex; align-items: center; gap: 10px; }
+.logo { width: 36px; height: 36px; border-radius: 10px; background: var(--go); color: var(--go-fg); display: grid; place-items: center; flex: none; }
+.logo svg { width: 22px; height: 22px; }
+h1 { font: 800 19px/1.1 var(--font-display); margin: 0; letter-spacing: -.01em; }
+.chip {
+  margin-left: auto; display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: 999px;
+  padding: 6px 10px; background: var(--panel-2); font-size: 13px; font-weight: 600; max-width: 62%;
 }
-#map { height: 100%; min-height: 0; background: var(--bg); }
-h1 {
-  font: 700 26px/1.1 var(--font-display); margin: 0; letter-spacing: .01em;
-  display: flex; align-items: center; gap: 10px;
+.chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chip svg { width: 16px; height: 16px; }
+
+.stops { display: flex; flex-direction: column; gap: 6px; position: relative; }
+.stop { position: relative; display: flex; align-items: center; gap: 8px; }
+.pin { flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font: 800 12px var(--font-display); color: #fff; }
+.pin.s { background: var(--go); }
+.pin.m { background: var(--accent); }
+.pin.e { background: var(--stop); }
+.field { flex: 1; min-width: 0; position: relative; }
+.field input {
+  width: 100%; border: 1px solid transparent; background: var(--panel-2); border-radius: 12px; padding: 11px 12px; outline: none;
 }
-h1 .sign {
-  display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 6px;
-  background: var(--accent); color: var(--accent-fg); font-size: 18px;
+.field input:focus { border-color: var(--accent); background: var(--panel); }
+.icon-btn {
+  flex: none; width: 38px; height: 38px; border-radius: 10px; border: 0; background: transparent; color: var(--muted);
+  display: grid; place-items: center;
 }
-h2 {
-  font: 600 13px/1.2 var(--font-display); text-transform: uppercase; letter-spacing: .08em;
-  color: var(--muted); margin: 0 0 8px;
-}
-section { display: flex; flex-direction: column; gap: 8px; }
-label { font-size: 12px; color: var(--muted); }
-input, select {
-  font: inherit; color: var(--fg); background: var(--field);
-  border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; width: 100%;
-}
-input:focus-visible, select:focus-visible, button:focus-visible, .opt:focus-visible {
-  outline: 2px solid var(--accent); outline-offset: 1px;
-}
-.place { position: relative; display: flex; align-items: center; gap: 8px; }
-.pin {
-  flex: none; width: 24px; height: 24px; border-radius: 50%;
-  display: grid; place-items: center; font: 700 13px var(--font-display); color: #fff;
-}
-.pin.a { background: var(--c-primary); }
-.pin.b { background: var(--c-minor); }
+.icon-btn:hover { background: var(--panel-2); color: var(--fg); }
 .suggest {
-  position: absolute; top: 100%; left: 32px; right: 0; z-index: 1000;
-  background: var(--panel); border: 1px solid var(--line); border-radius: 6px;
-  margin: 2px 0 0; padding: 4px 0; list-style: none; box-shadow: 0 6px 20px rgba(0,0,0,.15);
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 30; list-style: none; margin: 0; padding: 6px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow);
 }
-.suggest li { padding: 7px 10px; cursor: pointer; }
+.suggest li { padding: 8px 10px; border-radius: 8px; cursor: pointer; }
 .suggest li small { display: block; color: var(--muted); font-size: 12px; }
-.suggest li[aria-selected="true"], .suggest li:hover { background: var(--field); }
-.row { display: flex; gap: 8px; flex-wrap: wrap; }
-.hint { font-size: 12px; color: var(--muted); margin: 0; }
+.suggest li[aria-selected="true"], .suggest li:hover { background: var(--panel-2); }
+.links { display: flex; gap: 6px; flex-wrap: wrap; }
+.link {
+  border: 0; background: transparent; color: var(--accent); font-weight: 600; font-size: 14px; padding: 6px 8px; border-radius: 8px;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.link:hover { background: var(--panel-2); }
+.link svg { width: 18px; height: 18px; }
+
+.seg { display: grid; grid-template-columns: 1fr 1fr; background: var(--panel-2); border-radius: 12px; padding: 4px; gap: 4px; }
+.seg label { position: relative; text-align: center; padding: 8px 6px; border-radius: 9px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--muted); }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg label:has(input:checked) { background: var(--panel); color: var(--fg); box-shadow: 0 1px 4px rgba(0,0,0,.12); }
+.seg label:has(input:focus-visible) { outline: 2px solid var(--accent); }
+
+details.box { background: var(--panel-2); border-radius: 12px; }
+details.box > summary { list-style: none; cursor: pointer; padding: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+details.box > summary::-webkit-details-marker { display: none; }
+details.box > summary .sum-r { margin-left: auto; color: var(--muted); font-weight: 500; font-size: 13px; text-align: right; }
+details.box > summary::after { content: ""; flex: none; width: 8px; height: 8px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(45deg); margin: 0 4px 4px 4px; transition: transform .15s; }
+details.box[open] > summary::after { transform: rotate(-135deg); margin-bottom: -2px; }
+details.box .inner { padding: 0 12px 12px; display: flex; flex-direction: column; gap: 10px; }
+.lbl { font-size: 12px; color: var(--muted); font-weight: 500; }
+select.inp, input.inp { width: 100%; border: 1px solid var(--line); background: var(--panel); border-radius: 10px; padding: 9px 10px; }
 .dims { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.dims div { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.dims > div { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .unit { position: relative; }
-.unit input { padding-right: 34px; font-variant-numeric: tabular-nums; }
+.unit input { padding-right: 30px; font-variant-numeric: tabular-nums; }
 .unit span { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 12px; }
-.dims[aria-disabled="true"] { opacity: .45; }
-.opts { display: flex; flex-direction: column; gap: 6px; }
-.opt {
-  display: flex; gap: 10px; align-items: flex-start; padding: 9px 10px;
-  border: 1px solid var(--line); border-radius: 6px; cursor: pointer;
+.dims.off { opacity: .45; pointer-events: none; }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.row > .grow { flex: 1; min-width: 120px; width: auto; }
+.btn {
+  border: 0; border-radius: 12px; padding: 12px 16px; font-weight: 700; font-family: var(--font-display); font-size: 15px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
 }
-.opt input { width: auto; margin-top: 3px; }
-.opt b { display: block; font-weight: 600; }
-.opt span { font-size: 12px; color: var(--muted); }
-.opt:has(input:checked) { border-color: var(--accent); background: var(--field); }
-button {
-  font: 600 14px var(--font-body); border-radius: 6px; padding: 9px 14px; cursor: pointer;
-  border: 1px solid var(--line); background: var(--field); color: var(--fg);
-}
-button.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); flex: 1; }
-button:disabled { opacity: .55; cursor: progress; }
-.msg { padding: 10px 12px; border-radius: 6px; font-size: 13px; margin: 0; }
+.btn.small { padding: 9px 12px; font-size: 14px; border-radius: 10px; }
+.btn.go { background: var(--go); color: var(--go-fg); }
+.btn.pri { background: var(--accent); color: var(--accent-fg); }
+.btn.sec { background: var(--panel-2); color: var(--fg); }
+.btn.ghost { background: transparent; color: var(--stop); }
+.btn:disabled { opacity: .55; cursor: progress; }
+.msg { padding: 10px 12px; border-radius: 10px; font-size: 13px; margin: 0; }
 .msg.warn { background: var(--warn-bg); color: var(--warn-fg); }
 .msg.err { background: var(--err-bg); color: var(--err-fg); }
-.summary { display: flex; gap: 18px; align-items: baseline; flex-wrap: wrap; }
-.summary .big { font: 700 30px/1 var(--font-display); font-variant-numeric: tabular-nums; }
-.summary .sub { color: var(--muted); font-size: 13px; }
-.bar { display: flex; height: 12px; border-radius: 3px; overflow: hidden; background: var(--line); }
+.hint { font-size: 12px; color: var(--muted); margin: 0; }
+
+.result { display: flex; flex-direction: column; gap: 12px; }
+.summary { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.summary .big { font: 800 30px/1 var(--font-display); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.summary .km { font: 700 18px var(--font-display); color: var(--muted); }
+.summary .eta { margin-left: auto; font-size: 13px; color: var(--muted); }
+.bar { display: flex; height: 8px; border-radius: 99px; overflow: hidden; background: var(--line); gap: 2px; }
 .bar i { display: block; height: 100%; }
-.legend { display: grid; grid-template-columns: 14px 1fr auto; gap: 4px 8px; align-items: center; font-size: 13px; }
-.legend .sw { width: 14px; height: 6px; border-radius: 2px; }
-.legend .km { font-variant-numeric: tabular-nums; color: var(--muted); text-align: right; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; font-variant-numeric: tabular-nums; }
+.legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
 .variants { display: flex; flex-direction: column; gap: 6px; }
-.variant {
-  display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; text-align: left;
-  font-weight: 400; padding: 8px 10px;
-}
-.variant.on { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+.variant { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; text-align: left; padding: 10px 12px; border-radius: 12px; border: 2px solid transparent; background: var(--panel-2); }
+.variant.on { border-color: var(--accent); }
 .variant b { font-weight: 600; }
-.variant .t { font-variant-numeric: tabular-nums; text-align: right; }
+.variant .t { font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
 .variant .s { grid-column: 1 / -1; font-size: 12px; color: var(--muted); }
-ol.steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
-ol.steps li {
-  display: grid; grid-template-columns: 26px 1fr auto; gap: 8px; align-items: start;
-  padding: 7px 4px; border-top: 1px solid var(--line); cursor: pointer;
+ol.steps { list-style: none; margin: 0; padding: 0; }
+ol.steps li { display: grid; grid-template-columns: 28px 1fr auto; gap: 10px; align-items: center; padding: 8px 2px; border-top: 1px solid var(--line); cursor: pointer; font-size: 14px; }
+ol.steps li:hover { background: var(--panel); }
+ol.steps .ico { color: var(--accent); display: grid; place-items: center; }
+ol.steps .d { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.go-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+
+/* ---------- markery ---------- */
+.mk { width: 32px; height: 32px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display: grid; place-items: center; border: 3px solid #fff; box-shadow: 0 3px 8px rgba(0,0,0,.35); cursor: grab; }
+.mk b { transform: rotate(45deg); color: #fff; font: 800 13px var(--font-display); }
+.puck { width: 44px; height: 44px; display: grid; place-items: center; }
+.puck svg { width: 44px; height: 44px; filter: drop-shadow(0 2px 4px rgba(0,0,0,.4)); }
+
+/* ---------- navigace ---------- */
+#banner {
+  position: fixed; z-index: 20; top: calc(12px + env(safe-area-inset-top, 0px)); left: max(12px, env(safe-area-inset-left, 0px)); right: max(12px, env(safe-area-inset-right, 0px));
+  max-width: 560px; margin: 0 auto; background: var(--banner); color: var(--banner-fg); border-radius: 18px; box-shadow: var(--shadow);
+  display: grid; grid-template-columns: 64px 1fr; gap: 12px; align-items: center; padding: 14px 16px; overflow: hidden;
 }
-ol.steps li:hover { background: var(--field); }
-ol.steps .ico { font-size: 17px; line-height: 1.2; text-align: center; color: var(--accent); }
-ol.steps .d { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 12px; white-space: nowrap; }
-.mk {
-  width: 28px; height: 28px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg);
-  display: grid; place-items: center; border: 2px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,.35);
+#banner .bi svg { width: 60px; height: 60px; stroke-width: 2.6; }
+#b-dist { font: 800 34px/1 var(--font-display); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+#b-text { font-size: 16px; font-weight: 500; margin-top: 4px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+#b-then { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; font-size: 14px; background: rgba(0,0,0,.2); margin: 0 -16px -14px; padding: 8px 16px; }
+#b-then svg { width: 20px; height: 20px; }
+#navbar {
+  position: fixed; z-index: 20; left: max(12px, env(safe-area-inset-left, 0px)); right: max(12px, env(safe-area-inset-right, 0px)); bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  max-width: 560px; margin: 0 auto; background: var(--panel); border-radius: 18px; box-shadow: var(--shadow);
+  display: flex; align-items: center; gap: 10px; padding: 10px 10px 10px 16px;
 }
-.mk b { transform: rotate(45deg); color: #fff; font: 700 13px var(--font-display); }
-.leaflet-container { font-family: var(--font-body); }
-.spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: sp .8s linear infinite; vertical-align: -2px; margin-right: 6px; }
+#n-time { font: 800 24px/1 var(--font-display); font-variant-numeric: tabular-nums; color: var(--go); }
+#n-sub { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+#navbar .sp { flex: 1; min-width: 0; }
+.round { width: 46px; height: 46px; border-radius: 50%; border: 0; background: var(--panel-2); display: grid; place-items: center; flex: none; font-weight: 700; }
+.round.stopbtn { background: var(--stop); color: #fff; width: auto; border-radius: 23px; padding: 0 16px; font-family: var(--font-display); }
+#speed {
+  position: fixed; z-index: 20; left: max(16px, env(safe-area-inset-left, 0px)); bottom: calc(92px + env(safe-area-inset-bottom, 0px));
+  width: 64px; height: 64px; border-radius: 50%; background: var(--panel); box-shadow: var(--shadow);
+  display: grid; place-items: center; text-align: center; line-height: 1;
+}
+#speed b { font: 800 22px var(--font-display); font-variant-numeric: tabular-nums; display: block; }
+#speed small { font-size: 10px; color: var(--muted); }
+#recenter {
+  position: fixed; z-index: 20; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(92px + env(safe-area-inset-bottom, 0px));
+  border: 0; border-radius: 23px; padding: 12px 16px; background: var(--panel); box-shadow: var(--shadow); font-weight: 700; display: flex; gap: 8px; align-items: center;
+}
+#toast {
+  position: fixed; z-index: 40; left: 50%; transform: translateX(-50%); bottom: calc(100px + env(safe-area-inset-bottom, 0px));
+  background: var(--fg); color: var(--bg); padding: 10px 16px; border-radius: 12px; font-size: 14px; box-shadow: var(--shadow); max-width: calc(100% - 32px);
+}
+body.nav #panel { display: none; }
+.maplibregl-ctrl-group { border-radius: 12px !important; box-shadow: var(--shadow) !important; }
+body.nav .maplibregl-ctrl-top-right { display: none; }
+
+/* ---------- heslo ---------- */
+#gate { position: fixed; inset: 0; z-index: 100; background: var(--bg); display: grid; place-items: center; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+#gate form { background: var(--panel); border-radius: 20px; box-shadow: var(--shadow); padding: 24px; width: min(360px, 100%); display: flex; flex-direction: column; gap: 14px; }
+#gate p { margin: 0; color: var(--muted); }
+#gate input { border: 1px solid var(--line); background: var(--panel-2); border-radius: 12px; padding: 12px; }
+
+.spinner { display: inline-block; width: 16px; height: 16px; border: 2.5px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: sp .8s linear infinite; vertical-align: -3px; }
 @keyframes sp { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 3s; } }
+
+/* ---------- mobil ---------- */
 @media (max-width: 760px) {
-  body { grid-template-columns: 1fr; grid-template-rows: 52vh auto; height: auto; }
-  #map { grid-row: 1; height: 52vh; }
-  aside { grid-row: 2; border-right: 0; border-top: 1px solid var(--line); overflow: visible; padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  #panel {
+    top: auto; left: 0; right: 0; bottom: 0; width: auto; border-radius: 20px 20px 0 0;
+    max-height: 62%; padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  #panel .scroll { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-top: 4px; }
+  .handle { display: block; border: 0; background: transparent; padding: 10px 0 6px; width: 100%; flex: none; }
+  .handle::before { content: ""; display: block; width: 44px; height: 5px; border-radius: 3px; background: var(--line); margin: 0 auto; }
+  #panel.min .collapsible { display: none; }
+  #banner { grid-template-columns: 56px 1fr; padding: 12px 14px; }
+  #banner .bi svg { width: 52px; height: 52px; }
+  #b-dist { font-size: 30px; }
 }
-#gate {
-  position: fixed; inset: 0; z-index: 5000; background: var(--bg);
-  display: grid; place-items: center;
-  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
-}
-#gate form { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 24px; width: min(360px, 100%); display: flex; flex-direction: column; gap: 12px; }
-#gate p { margin: 0; color: var(--muted); }
 </style>
 </head>
 <body>
 <div id="gate">
   <form id="gate-form">
-    <h1><span class="sign" aria-hidden="true">↗</span>Navigace pro vozidla</h1>
+    <div class="head"><span class="logo"><svg class="i" viewBox="0 0 24 24"><path d="M12 3 4 21l8-4 8 4z"/></svg></span><h1>Navigace pro vozidla</h1></div>
     <p>Zadej heslo.</p>
     <input id="gate-pw" type="password" autocomplete="current-password" aria-label="Heslo">
     <p id="gate-err" class="msg err" hidden>Špatné heslo, zkus to znovu.</p>
-    <button class="primary" type="submit">Otevřít</button>
+    <button class="btn pri" type="submit">Otevřít</button>
   </form>
 </div>
-<aside>
-  <h1><span class="sign" aria-hidden="true">↗</span>Navigace pro vozidla</h1>
 
-  <section aria-labelledby="h-trasa">
-    <h2 id="h-trasa">Trasa</h2>
-    <div class="place">
-      <span class="pin a">A</span>
-      <input id="from" type="text" autocomplete="off" placeholder="Odkud – město, ulice…" aria-label="Odkud">
-      <ul class="suggest" id="from-list" role="listbox" hidden></ul>
-    </div>
-    <div class="place">
-      <span class="pin b">B</span>
-      <input id="to" type="text" autocomplete="off" placeholder="Kam – město, ulice…" aria-label="Kam">
-      <ul class="suggest" id="to-list" role="listbox" hidden></ul>
-    </div>
-    <p class="hint">Body můžeš zadat i kliknutím do mapy a pak je přetáhnout.</p>
-  </section>
-
-  <section aria-labelledby="h-voz">
-    <h2 id="h-voz">Vozidlo</h2>
-    <select id="preset" aria-label="Typ vozidla">
-      <option value="car">Osobní auto</option>
-      <option value="van">Dodávka do 3,5 t</option>
-      <option value="truck12" selected>Nákladní auto 12 t</option>
-      <option value="semi">Kamion (návěs) 40 t</option>
-      <option value="custom">Vlastní rozměry</option>
-    </select>
-    <div class="dims" id="dims">
-      <div><label for="h">Výška</label><div class="unit"><input id="h" type="number" step="0.1" min="1" max="5"><span>m</span></div></div>
-      <div><label for="w">Šířka</label><div class="unit"><input id="w" type="number" step="0.05" min="1" max="3.5"><span>m</span></div></div>
-      <div><label for="l">Délka</label><div class="unit"><input id="l" type="number" step="0.5" min="2" max="30"><span>m</span></div></div>
-      <div><label for="t">Hmotnost</label><div class="unit"><input id="t" type="number" step="0.5" min="0.5" max="60"><span>t</span></div></div>
-    </div>
-  </section>
-
-  <section aria-labelledby="h-sil">
-    <h2 id="h-sil">Silnice</h2>
-    <div class="opts">
-      <label class="opt"><input type="radio" name="pref" value="main" checked>
-        <div><b>Dálnice a silnice I. třídy</b><span>Nižší třídy jen tam, kde to jinak nejde.</span></div></label>
-      <label class="opt"><input type="radio" name="pref" value="fast">
-        <div><b>Nejrychlejší</b><span>Bez ohledu na třídu silnice.</span></div></label>
-    </div>
-  </section>
-
-  <div class="row"><button class="primary" id="go">Najít trasu</button><button id="swap" title="Prohodit start a cíl">⇅ Prohodit</button></div>
-
-  <div id="out" aria-live="polite"></div>
-</aside>
 <div id="map" role="application" aria-label="Mapa"></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<div id="panel">
+  <button class="handle" id="handle" aria-label="Zobrazit nebo skrýt panel"></button>
+  <div class="scroll">
+    <div class="head">
+      <span class="logo"><svg class="i" viewBox="0 0 24 24"><path d="M12 3 4 21l8-4 8 4z"/></svg></span>
+      <h1>Navigace</h1>
+      <button class="chip" id="veh-chip" title="Vozidlo"><svg class="i" viewBox="0 0 24 24"><path d="M3 6h11v10H3zM14 9h4l3 3v4h-7"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg><span id="veh-chip-t">Vozidlo</span></button>
+    </div>
+
+    <div class="stops" id="stops"></div>
+    <div class="links">
+      <button class="link" id="add-stop"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Přidat zastávku</button>
+      <button class="link" id="swap"><svg class="i" viewBox="0 0 24 24"><path d="M7 4v16M3 8l4-4 4 4M17 20V4M13 16l4 4 4-4"/></svg>Prohodit</button>
+    </div>
+
+    <div class="collapsible">
+      <div class="seg" role="radiogroup" aria-label="Výběr silnic">
+        <label><input type="radio" name="pref" value="main" checked>Dálnice a I. třídy</label>
+        <label><input type="radio" name="pref" value="fast">Nejrychlejší</label>
+      </div>
+
+      <div id="out" class="result" aria-live="polite"></div>
+
+      <details class="box" id="veh-box">
+        <summary>Vozidlo <span class="sum-r" id="veh-sum"></span></summary>
+        <div class="inner">
+          <div><label class="lbl" for="profile">Uložená vozidla</label><select class="inp" id="profile"></select></div>
+          <div class="dims" id="dims">
+            <div><label class="lbl" for="h">Výška</label><div class="unit"><input class="inp" id="h" type="number" inputmode="decimal" step="0.1" min="1" max="5"><span>m</span></div></div>
+            <div><label class="lbl" for="w">Šířka</label><div class="unit"><input class="inp" id="w" type="number" inputmode="decimal" step="0.05" min="1" max="3.5"><span>m</span></div></div>
+            <div><label class="lbl" for="l">Délka</label><div class="unit"><input class="inp" id="l" type="number" inputmode="decimal" step="0.5" min="2" max="30"><span>m</span></div></div>
+            <div><label class="lbl" for="t">Hmotnost</label><div class="unit"><input class="inp" id="t" type="number" inputmode="decimal" step="0.5" min="0.5" max="60"><span>t</span></div></div>
+          </div>
+          <div class="row">
+            <input class="inp grow" id="pname" type="text" placeholder="Název, třeba Moje Iveco" aria-label="Název vozidla">
+            <button class="btn small pri" id="psave">Uložit vozidlo</button>
+          </div>
+          <div class="row"><p class="hint" id="psave-msg" style="flex:1">Uložené vozidlo si aplikace pamatuje i po zavření.</p><button class="btn small ghost" id="pdel" hidden>Smazat</button></div>
+        </div>
+      </details>
+
+      <details class="box" id="voice-box">
+        <summary>Hlasové pokyny <span class="sum-r" id="voice-sum"></span></summary>
+        <div class="inner">
+          <div><label class="lbl" for="voice">Hlas</label><select class="inp" id="voice"></select></div>
+          <div><label class="lbl" for="rate">Rychlost řeči</label><select class="inp" id="rate">
+            <option value="1">Normální</option><option value="1.15">Rychlejší</option><option value="1.3">Rychlá</option></select></div>
+          <button class="btn small sec" id="voice-test">Vyzkoušet hlas</button>
+          <p class="hint" id="voice-note"></p>
+        </div>
+      </details>
+    </div>
+  </div>
+</div>
+
+<div id="banner" hidden>
+  <div class="bi" id="b-icon"></div>
+  <div style="min-width:0"><div id="b-dist"></div><div id="b-text"></div></div>
+  <div id="b-then" hidden></div>
+</div>
+<div id="speed" hidden><div><b id="spd">0</b><small>km/h</small></div></div>
+<button id="recenter" hidden><svg class="i" viewBox="0 0 24 24"><path d="M12 3 4 21l8-4 8 4z"/></svg>Vycentrovat</button>
+<div id="navbar" hidden>
+  <div class="sp"><div id="n-time">–</div><div id="n-sub"></div></div>
+  <button class="round" id="sim-speed" hidden title="Rychlost jízdy nanečisto">×3</button>
+  <button class="round" id="mute" title="Ztlumit hlas" aria-label="Ztlumit hlas"></button>
+  <button class="round stopbtn" id="stop-nav">Ukončit</button>
+</div>
+<div id="toast" hidden role="status"></div>
+
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script>
 function startApp() {
   "use strict";
   var VALHALLA = "https://valhalla1.openstreetmap.de";
   var PHOTON = "https://photon.komoot.io";
+  var CZ_BBOX = "12.09,48.55,18.87,51.06";
+  var $ = function (id) { return document.getElementById(id); };
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  function cssVar(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+  function load(k) { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (e) { return null; } }
+  function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  var toastT;
+  function toast(t, ms) { var x = $("toast"); x.textContent = t; x.hidden = false; clearTimeout(toastT); toastT = setTimeout(function () { x.hidden = true; }, ms || 3500); }
 
-  var PRESETS = {
-    car:     null,
-    van:     { h: 2.8, w: 2.1,  l: 6.5,  t: 3.5 },
-    truck12: { h: 3.6, w: 2.55, l: 10,   t: 12 },
-    semi:    { h: 4.0, w: 2.55, l: 16.5, t: 40 }
+  // ---------- ikony manévrů ----------
+  var P = {
+    straight: '<path d="M12 21V4M6 10l6-6 6 6"/>',
+    right: '<path d="M7 21v-8a4 4 0 0 1 4-4h9M16 5l4 4-4 4"/>',
+    slight: '<path d="M9 21v-7l8-8M11 6h6v6"/>',
+    sharp: '<path d="M8 3v10l8 8M10 21h6v-6"/>',
+    uturn: '<path d="M16 21V9a4 4 0 0 0-8 0v7M4 12l4 4 4-4"/>',
+    round: '<circle cx="12" cy="10" r="4"/><path d="M12 14v7M15 7l4-4M19 8V3h-5"/>',
+    flag: '<path d="M6 21V4M6 4h12l-3 4 3 4H6"/>',
+    merge: '<path d="M12 21v-9L6 4M12 12l6-8M15 4h3v3"/>'
   };
-  // Skupiny tříd silnic: popisek, barva, penalizace pro režim "hlavní silnice".
+  var MAN = { 1: ["straight"], 2: ["straight"], 3: ["straight"], 4: ["flag"], 5: ["flag"], 6: ["flag"], 7: ["straight"], 8: ["straight"],
+    9: ["slight"], 10: ["right"], 11: ["sharp"], 12: ["uturn", 1], 13: ["uturn"], 14: ["sharp", 1], 15: ["right", 1], 16: ["slight", 1],
+    17: ["straight"], 18: ["slight"], 19: ["slight", 1], 20: ["slight"], 21: ["slight", 1], 22: ["straight"], 23: ["slight"], 24: ["slight", 1],
+    25: ["merge"], 26: ["round"], 27: ["round"], 28: ["straight"], 29: ["straight"] };
+  function icon(type) {
+    var m = MAN[type] || ["straight"];
+    return '<svg class="i" viewBox="0 0 24 24"' + (m[1] ? ' style="transform:scaleX(-1)"' : "") + ">" + P[m[0]] + "</svg>";
+  }
+  function isEnd(m) { return m.type === 4 || m.type === 5 || m.type === 6; }
+
+  // ---------- třídy silnic ----------
   var GROUPS = [
-    { key: "motorway", name: "Dálnice",           css: "--c-motorway",  mult: 1.0 },
-    { key: "primary",  name: "Silnice I. třídy",  css: "--c-primary",   mult: 1.05 },
-    { key: "secondary",name: "Silnice II. třídy", css: "--c-secondary", mult: 1.7 },
-    { key: "tertiary", name: "Silnice III. třídy",css: "--c-tertiary",  mult: 2.3 },
-    { key: "minor",    name: "Místní a ostatní",  css: "--c-minor",     mult: 2.8 }
+    { key: "motorway", name: "Dálnice", css: "--c-motorway", mult: 1.0 },
+    { key: "primary", name: "I. třída", css: "--c-primary", mult: 1.05 },
+    { key: "secondary", name: "II. třída", css: "--c-secondary", mult: 1.7 },
+    { key: "tertiary", name: "III. třída", css: "--c-tertiary", mult: 2.3 },
+    { key: "minor", name: "Místní", css: "--c-minor", mult: 2.8 }
   ];
   function groupOf(rc) {
     if (rc === "motorway") return "motorway";
@@ -265,81 +390,226 @@ function startApp() {
     if (rc === "tertiary") return "tertiary";
     return "minor";
   }
-  function cssVar(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
 
-  var $ = function (id) { return document.getElementById(id); };
-  var out = $("out");
-  var state = { A: null, B: null, trips: [], sel: 0 };
+  // ---------- formáty ----------
+  function fmtTime(s) { var m = Math.round(s / 60), h = Math.floor(m / 60); return h ? h + " h " + (m % 60) + " min" : m + " min"; }
+  function fmtKm(km) { return km < 1 ? Math.round(km * 100) * 10 + " m" : km.toFixed(km < 10 ? 1 : 0).replace(".", ",") + " km"; }
+  function fmtDist(m) {
+    if (m < 1000) { var r = m < 100 ? Math.max(10, Math.round(m / 10) * 10) : Math.round(m / 50) * 50; return r + " m"; }
+    return (m / 1000).toFixed(m < 10000 ? 1 : 0).replace(".", ",") + " km";
+  }
+  function clock(sec) { return new Date(Date.now() + sec * 1000).toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" }); }
+  // "300 metrů", "1 kilometr", "2 kilometry", "1,5 kilometru", "5 kilometrů"
+  function sayDist(m) {
+    if (m < 950) { var r = m < 300 ? Math.round(m / 50) * 50 : Math.round(m / 100) * 100; r = Math.max(50, r); return r + " metrů"; }
+    var k = m < 10000 ? Math.round(m / 500) / 2 : Math.round(m / 1000);
+    if (k % 1) return String(k).replace(".", ",") + " kilometru";
+    if (k === 1) return "1 kilometr";
+    if (k < 5) return k + " kilometry";
+    return k + " kilometrů";
+  }
+  function lc(s) { return s ? s.charAt(0).toLowerCase() + s.slice(1) : s; }
+  // Valhalla občas píše sloveso uprostřed věty velkým písmenem ("Poté za 100 metrů, Držte se…") a přidává čísla silnic ("…, 38H").
+  var VERBS = /([^.!?]\s)(Držte|Odbočte|Jeďte|Vjeďte|Sjeďte|Pokračujte|Otočte|Zařaďte|Vyjeďte|Najeďte|Dorazili|Dorazíte|Zůstaňte|Přejeďte|Nastupte|Vystupte)/g;
+  function fixText(s) {
+    return (s || "").replace(VERBS, function (_, a, b) { return a + b.toLowerCase(); })
+      .replace(/metrů, /g, "metrů ").replace(/, \d{1,4}[A-Z]?(?=[.,]|$)/g, "");
+  }
+  function n(v) { return String(v).replace(".", ","); }
+
+  // ---------- geometrie ----------
+  var R = 6371000;
+  function rad(d) { return d * Math.PI / 180; }
+  function hav(a, b) {
+    var dLat = rad(b[0] - a[0]), dLon = rad(b[1] - a[1]);
+    var x = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(rad(a[0])) * Math.cos(rad(b[0])) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    return 2 * R * Math.asin(Math.sqrt(x));
+  }
+  function bearing(a, b) {
+    var y = Math.sin(rad(b[1] - a[1])) * Math.cos(rad(b[0]));
+    var x = Math.cos(rad(a[0])) * Math.sin(rad(b[0])) - Math.sin(rad(a[0])) * Math.cos(rad(b[0])) * Math.cos(rad(b[1] - a[1]));
+    return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+  }
+  function project(p, a, b) {
+    var k = Math.cos(rad(p[0])), ax = a[1] * k, ay = a[0], bx = b[1] * k, by = b[0], px = p[1] * k, py = p[0];
+    var dx = bx - ax, dy = by - ay, L = dx * dx + dy * dy, t = L ? ((px - ax) * dx + (py - ay) * dy) / L : 0;
+    t = Math.max(0, Math.min(1, t));
+    var q = [ay + t * dy, (ax + t * dx) / k];
+    return { d: hav(p, q), t: t, q: q };
+  }
+  function decode(str) {
+    var idx = 0, lat = 0, lng = 0, out = [], f = 1e6;
+    while (idx < str.length) {
+      var b, shift = 0, res = 0;
+      do { b = str.charCodeAt(idx++) - 63; res |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
+      lat += (res & 1) ? ~(res >> 1) : (res >> 1);
+      shift = 0; res = 0;
+      do { b = str.charCodeAt(idx++) - 63; res |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
+      lng += (res & 1) ? ~(res >> 1) : (res >> 1);
+      out.push([lat / f, lng / f]);
+    }
+    return out;
+  }
+  var ll = function (p) { return [p[1], p[0]]; };
+  function lineFC(coords, props) { return { type: "FeatureCollection", features: coords.length > 1 ? [{ type: "Feature", properties: props || {}, geometry: { type: "LineString", coordinates: coords } }] : [] }; }
 
   // ---------- mapa ----------
-  var map = L.map("map", { zoomControl: true }).setView([49.8, 15.5], 7);
-  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · trasy <a href="https://valhalla.github.io/valhalla/">Valhalla</a> (FOSSGIS)'
-  }).addTo(map);
-  var routeLayer = L.layerGroup().addTo(map);
-  var markers = {};
-
-  function makeIcon(letter) {
-    var color = letter === "A" ? cssVar("--c-primary") : cssVar("--c-minor");
-    return L.divIcon({ className: "", iconSize: [28, 28], iconAnchor: [14, 28],
-      html: '<div class="mk" style="background:' + color + '"><b>' + letter + "</b></div>" });
-  }
-  function setPoint(which, lat, lon, label, opts) {
-    state[which] = { lat: lat, lon: lon, label: label || "" };
-    $(which === "A" ? "from" : "to").value = label || (lat.toFixed(5) + ", " + lon.toFixed(5));
-    if (markers[which]) markers[which].setLatLng([lat, lon]);
-    else {
-      markers[which] = L.marker([lat, lon], { icon: makeIcon(which), draggable: true }).addTo(map);
-      markers[which].on("dragend", function (e) {
-        var p = e.target.getLatLng();
-        setPoint(which, p.lat, p.lng, null, { reverse: true, auto: true });
+  var dark = window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches;
+  var map = new maplibregl.Map({
+    container: "map",
+    style: "https://tiles.openfreemap.org/styles/" + (dark ? "dark" : "liberty"),
+    center: [15.45, 49.8], zoom: 6.4, minZoom: 5.5,
+    maxBounds: [[10.5, 47.6], [20.4, 51.9]],
+    attributionControl: { compact: true }
+  });
+  map.addControl(new maplibregl.NavigationControl({ showCompass: true }), "top-right");
+  var mapReady = new Promise(function (res) {
+    map.on("load", function () {
+      // české popisky místo anglických
+      map.getStyle().layers.forEach(function (l) {
+        if (l.type === "symbol" && l.layout && l.layout["text-field"] && JSON.stringify(l.layout["text-field"]).indexOf("name") >= 0) {
+          map.setLayoutProperty(l.id, "text-field", ["coalesce", ["get", "name:cs"], ["get", "name"]]);
+        }
       });
-    }
-    if (opts && opts.reverse) reverse(which, lat, lon);
-    if (opts && opts.auto && state.A && state.B) findRoute();
-  }
-  map.on("click", function (e) {
-    var which = !state.A ? "A" : "B";
-    setPoint(which, e.latlng.lat, e.latlng.lng, null, { reverse: true, auto: true });
+      var empty = { type: "FeatureCollection", features: [] };
+      ["alts", "route", "done"].forEach(function (s) { map.addSource(s, { type: "geojson", data: empty }); });
+      var lay = map.getStyle().layers, before;
+      for (var i = 0; i < lay.length; i++) { if (lay[i].type === "symbol") { before = lay[i].id; break; } }
+      var round = { "line-join": "round", "line-cap": "round" };
+      var w = function (a, b) { return ["interpolate", ["linear"], ["zoom"], 6, a, 16, b]; };
+      map.addLayer({ id: "alts-casing", type: "line", source: "alts", layout: round, paint: { "line-color": "#ffffff", "line-width": w(6, 15), "line-opacity": .7 } }, before);
+      map.addLayer({ id: "alts-line", type: "line", source: "alts", layout: round, paint: { "line-color": "#8896a4", "line-width": w(3.5, 10) } }, before);
+      map.addLayer({ id: "done-line", type: "line", source: "done", layout: round, paint: { "line-color": "#9aa6b2", "line-width": w(3.5, 11) } }, before);
+      map.addLayer({ id: "route-casing", type: "line", source: "route", layout: round, paint: { "line-color": "#ffffff", "line-width": w(6.5, 17) } }, before);
+      map.addLayer({ id: "route-line", type: "line", source: "route", layout: round, paint: { "line-color": ["get", "color"], "line-width": w(3.5, 11) } }, before);
+      map.on("click", "alts-line", function (e) {
+        var i = e.features[0].properties.idx;
+        if (state.legs.length === 1) { state.legs[0].sel = i; buildPlan(); render(false); }
+      });
+      map.on("mouseenter", "alts-line", function () { map.getCanvas().style.cursor = "pointer"; });
+      map.on("mouseleave", "alts-line", function () { map.getCanvas().style.cursor = ""; });
+      res();
+    });
   });
 
-  // ---------- hledání adres (Photon) ----------
+  // ---------- zastávky ----------
+  var state = { stops: [null, null], legs: [], plan: null };
+  var markers = [];
+  function pinClass(i) { return i === 0 ? "s" : i === state.stops.length - 1 ? "e" : "m"; }
+  function pinLetter(i) { return String.fromCharCode(65 + i); }
+  function renderStops() {
+    var box = $("stops"); box.textContent = "";
+    state.stops.forEach(function (s, i) {
+      var row = el("div", "stop");
+      var pin = el("span", "pin " + pinClass(i), pinLetter(i));
+      var field = el("div", "field");
+      var input = el("input"); input.type = "text"; input.autocomplete = "off"; input.id = "stop-" + i;
+      input.placeholder = i === 0 ? "Odkud" : i === state.stops.length - 1 ? "Kam jedeš?" : "Zastávka";
+      input.setAttribute("aria-label", input.placeholder);
+      input.value = s ? s.label : "";
+      var list = el("ul", "suggest"); list.hidden = true; list.setAttribute("role", "listbox");
+      field.appendChild(input); field.appendChild(list);
+      row.appendChild(pin); row.appendChild(field);
+      if (i === 0) {
+        var me = el("button", "icon-btn"); me.title = "Moje poloha"; me.setAttribute("aria-label", "Použít moji polohu");
+        me.innerHTML = '<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>';
+        me.addEventListener("click", useMyLocation);
+        row.appendChild(me);
+      } else if (i < state.stops.length - 1) {
+        var rm = el("button", "icon-btn"); rm.title = "Odebrat zastávku"; rm.setAttribute("aria-label", "Odebrat zastávku");
+        rm.innerHTML = '<svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>';
+        rm.addEventListener("click", function () { state.stops.splice(i, 1); renderStops(); autoRoute(); });
+        row.appendChild(rm);
+      }
+      setupSearch(input, list, i);
+      box.appendChild(row);
+    });
+    syncMarkers();
+  }
+  function syncMarkers() {
+    markers.forEach(function (m) { m.remove(); }); markers = [];
+    state.stops.forEach(function (s, i) {
+      if (!s) return;
+      var d = el("div"), drop = el("div", "mk"); d.appendChild(drop);
+      drop.style.background = cssVar(i === 0 ? "--go" : i === state.stops.length - 1 ? "--stop" : "--accent");
+      drop.appendChild(el("b", null, pinLetter(i)));
+      var m = new maplibregl.Marker({ element: d, draggable: true, anchor: "bottom", offset: [0, -4] }).setLngLat([s.lon, s.lat]).addTo(map);
+      m.on("dragend", function () {
+        var p = m.getLngLat();
+        state.stops[i] = { lat: p.lat, lon: p.lng, label: p.lat.toFixed(5) + ", " + p.lng.toFixed(5) };
+        var inp = $("stop-" + i); if (inp) inp.value = state.stops[i].label;
+        reverse(i, p.lat, p.lng); autoRoute();
+      });
+      markers.push(m);
+    });
+  }
+  function setStop(i, lat, lon, label, rev) {
+    state.stops[i] = { lat: lat, lon: lon, label: label || (lat.toFixed(5) + ", " + lon.toFixed(5)) };
+    var inp = $("stop-" + i); if (inp) inp.value = state.stops[i].label;
+    syncMarkers();
+    if (rev) reverse(i, lat, lon);
+  }
+  function autoRoute() { if (state.stops.every(Boolean)) findRoute(); else clearRoute(); }
+  map.on("click", function (e) {
+    if (nav.active) return;
+    if (map.getLayer("alts-line") && map.queryRenderedFeatures(e.point, { layers: ["alts-line"] }).length) return;
+    var i = state.stops.findIndex(function (s) { return !s; });
+    if (i < 0) i = state.stops.length - 1;
+    setStop(i, e.lngLat.lat, e.lngLat.lng, null, true);
+    autoRoute();
+  });
+  $("add-stop").addEventListener("click", function () {
+    if (state.stops.length >= 7) { toast("Víc než 5 zastávek zatím nejde."); return; }
+    state.stops.splice(state.stops.length - 1, 0, null); renderStops();
+    var inp = $("stop-" + (state.stops.length - 2)); if (inp) inp.focus();
+  });
+  $("swap").addEventListener("click", function () { state.stops.reverse(); renderStops(); autoRoute(); });
+  function useMyLocation() {
+    if (!navigator.geolocation) { toast("Tohle zařízení nezná polohu."); return; }
+    toast("Zjišťuji polohu…", 8000);
+    navigator.geolocation.getCurrentPosition(function (p) {
+      $("toast").hidden = true;
+      setStop(0, p.coords.latitude, p.coords.longitude, "Moje poloha");
+      if (!state.stops.every(Boolean)) map.easeTo({ center: [p.coords.longitude, p.coords.latitude], zoom: Math.max(map.getZoom(), 12) });
+      autoRoute();
+    }, function (err) {
+      toast(err.code === 1 ? "Přístup k poloze je zakázaný. Povol ho v nastavení prohlížeče." : "Polohu se nepodařilo zjistit.", 5000);
+    }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 });
+  }
+
+  // ---------- hledání adres ----------
   function fmtPlace(p) {
-    var main = p.name || [p.street, p.housenumber].filter(Boolean).join(" ") || p.city || "";
-    var rest = [p.name && p.street ? [p.street, p.housenumber].filter(Boolean).join(" ") : "", p.city !== main ? p.city : "", p.county, p.country]
-      .filter(function (x) { return x && x !== main; });
-    return { main: main, rest: rest.join(", ") };
+    var street = [p.street, p.housenumber].filter(Boolean).join(" ");
+    var main = p.name || street || p.city || "";
+    var rest = [p.name && street ? street : "", p.city !== main ? p.city : "", p.county].filter(function (x) { return x && x !== main; });
+    return { main: main, rest: rest.join(", "), short: main + (p.city && p.city !== main ? ", " + p.city : "") };
   }
-  function reverse(which, lat, lon) {
-    fetch(PHOTON + "/reverse?lat=" + lat + "&lon=" + lon + "&limit=1")
-      .then(function (r) { return r.json(); })
-      .then(function (j) {
-        var f = j.features && j.features[0]; if (!f) return;
-        var cur = state[which]; if (!cur || cur.lat !== lat || cur.lon !== lon) return;
-        var fp = fmtPlace(f.properties);
-        cur.label = [fp.main, f.properties.city].filter(function (x, i, a) { return x && a.indexOf(x) === i; }).join(", ");
-        $(which === "A" ? "from" : "to").value = cur.label;
-      }).catch(function () {});
+  function reverse(i, lat, lon) {
+    fetch(PHOTON + "/reverse?lat=" + lat + "&lon=" + lon + "&limit=1").then(function (r) { return r.json(); }).then(function (j) {
+      var f = j.features && j.features[0], s = state.stops[i];
+      if (!f || !s || s.lat !== lat || s.lon !== lon) return;
+      s.label = fmtPlace(f.properties).short;
+      var inp = $("stop-" + i); if (inp) inp.value = s.label;
+    }).catch(function () {});
   }
-  function setupSearch(inputId, listId, which) {
-    var input = $(inputId), list = $(listId), timer = null, items = [], active = -1, seq = 0;
+  function setupSearch(input, list, i) {
+    var timer = null, items = [], active = -1, seq = 0;
     function close() { list.hidden = true; active = -1; }
-    function choose(i) {
-      var f = items[i]; if (!f) return;
-      var c = f.geometry.coordinates, fp = fmtPlace(f.properties);
-      close();
-      setPoint(which, c[1], c[0], fp.main + (f.properties.city && f.properties.city !== fp.main ? ", " + f.properties.city : ""), { auto: true });
-      map.setView([c[1], c[0]], Math.max(map.getZoom(), 11));
+    function choose(k) {
+      var f = items[k]; if (!f) return;
+      var c = f.geometry.coordinates; close();
+      setStop(i, c[1], c[0], fmtPlace(f.properties).short);
+      input.blur();
+      if (!state.stops.every(Boolean)) map.easeTo({ center: [c[0], c[1]], zoom: Math.max(map.getZoom(), 11) });
+      autoRoute();
     }
     function render() {
       list.textContent = "";
-      items.forEach(function (f, i) {
-        var fp = fmtPlace(f.properties), li = document.createElement("li");
-        li.setAttribute("role", "option");
-        li.setAttribute("aria-selected", i === active ? "true" : "false");
-        li.textContent = fp.main;
-        if (fp.rest) { var s = document.createElement("small"); s.textContent = fp.rest; li.appendChild(s); }
-        li.addEventListener("mousedown", function (e) { e.preventDefault(); choose(i); });
+      items.forEach(function (f, k) {
+        var fp = fmtPlace(f.properties), li = el("li", null, fp.main);
+        li.setAttribute("role", "option"); li.setAttribute("aria-selected", k === active ? "true" : "false");
+        if (fp.rest) li.appendChild(el("small", null, fp.rest));
+        li.addEventListener("mousedown", function (e) { e.preventDefault(); choose(k); });
         list.appendChild(li);
       });
       list.hidden = items.length === 0;
@@ -350,7 +620,7 @@ function startApp() {
       if (q.length < 3) { items = []; close(); return; }
       timer = setTimeout(function () {
         var my = ++seq, c = map.getCenter();
-        fetch(PHOTON + "/api/?q=" + encodeURIComponent(q) + "&limit=6&lat=" + c.lat.toFixed(3) + "&lon=" + c.lng.toFixed(3))
+        fetch(PHOTON + "/api/?q=" + encodeURIComponent(q) + "&limit=8&bbox=" + CZ_BBOX + "&lat=" + c.lat.toFixed(3) + "&lon=" + c.lng.toFixed(3))
           .then(function (r) { return r.json(); })
           .then(function (j) {
             if (my !== seq) return;
@@ -358,17 +628,15 @@ function startApp() {
             items = (j.features || []).filter(function (f) {
               var fp = fmtPlace(f.properties), k = fp.main + "|" + fp.rest;
               if (seen[k]) return false; seen[k] = true; return true;
-            });
+            }).slice(0, 6);
             active = -1; render();
-          })
-          .catch(function () {
+          }).catch(function () {
             if (my !== seq) return;
             items = []; list.textContent = "";
-            var li = document.createElement("li");
-            li.textContent = "Hledání adres teď neodpovídá. Zkus to za chvíli, nebo klikni přímo do mapy.";
-            list.appendChild(li); list.hidden = false;
+            list.appendChild(el("li", null, "Hledání teď neodpovídá. Zkus to za chvíli, nebo klikni do mapy."));
+            list.hidden = false;
           });
-      }, 300);
+      }, 280);
     });
     input.addEventListener("keydown", function (e) {
       if (list.hidden) return;
@@ -377,230 +645,514 @@ function startApp() {
       else if (e.key === "Enter") { choose(active < 0 ? 0 : active); e.preventDefault(); }
       else if (e.key === "Escape") close();
     });
+    input.addEventListener("focus", function () { $("panel").classList.remove("min"); });
     input.addEventListener("blur", function () { setTimeout(close, 150); });
   }
-  setupSearch("from", "from-list", "A");
-  setupSearch("to", "to-list", "B");
 
-  // ---------- vozidlo ----------
+  // ---------- vozidla ----------
+  var BUILTIN = [
+    { id: "car", name: "Osobní auto", car: true },
+    { id: "van", name: "Dodávka do 3,5 t", h: 2.8, w: 2.1, l: 6.5, t: 3.5 },
+    { id: "truck12", name: "Nákladní auto 12 t", h: 3.6, w: 2.55, l: 10, t: 12 },
+    { id: "semi", name: "Kamion 40 t", h: 4.0, w: 2.55, l: 16.5, t: 40 }
+  ];
+  var vehicles = load("navigace-vozidla") || { mine: [], current: "truck12" };
   var dimIds = ["h", "w", "l", "t"];
-  function applyPreset(key) {
-    var p = PRESETS[key];
-    $("dims").setAttribute("aria-disabled", key === "car" ? "true" : "false");
-    dimIds.forEach(function (id) { $(id).disabled = key === "car"; if (p) $(id).value = p[id]; });
+  function allProfiles() { return vehicles.mine.concat(BUILTIN); }
+  function findProfile(id) { return allProfiles().filter(function (p) { return p.id === id; })[0]; }
+  function renderProfiles() {
+    var sel = $("profile"); sel.textContent = "";
+    if (vehicles.mine.length) {
+      var g1 = el("optgroup"); g1.label = "Moje vozidla";
+      vehicles.mine.forEach(function (p) { var o = el("option", null, p.name); o.value = p.id; g1.appendChild(o); });
+      sel.appendChild(g1);
+    }
+    var g2 = el("optgroup"); g2.label = "Předvolby";
+    BUILTIN.forEach(function (p) { var o = el("option", null, p.name); o.value = p.id; g2.appendChild(o); });
+    sel.appendChild(g2);
+    if (!findProfile(vehicles.current)) vehicles.current = "truck12";
+    sel.value = vehicles.current;
+    applyProfile();
   }
-  $("preset").addEventListener("change", function () { applyPreset(this.value); save(); });
-  dimIds.forEach(function (id) {
-    $(id).addEventListener("input", function () { $("preset").value = "custom"; save(); });
+  function applyProfile() {
+    var p = findProfile(vehicles.current);
+    $("dims").classList.toggle("off", !!p.car);
+    dimIds.forEach(function (id) { $(id).value = p.car ? "" : p[id]; });
+    var mine = vehicles.mine.some(function (x) { return x.id === p.id; });
+    $("pdel").hidden = !mine;
+    $("pname").value = mine ? p.name : "";
+    updateVehSummary();
+  }
+  function num(id) { var v = parseFloat(String($(id).value).replace(",", ".")); return isFinite(v) && v > 0 ? v : undefined; }
+  function updateVehSummary() {
+    var p = findProfile(vehicles.current);
+    $("veh-sum").textContent = p.name;
+    $("veh-chip-t").textContent = p.car ? p.name : p.name + " · " + n(num("h") || "?") + " m · " + n(num("t") || "?") + " t";
+  }
+  $("profile").addEventListener("change", function () { vehicles.current = this.value; save("navigace-vozidla", vehicles); applyProfile(); autoRoute(); });
+  dimIds.forEach(function (id) { $(id).addEventListener("change", function () { updateVehSummary(); autoRoute(); }); });
+  $("psave").addEventListener("click", function () {
+    var name = $("pname").value.trim();
+    if (!name) { $("psave-msg").textContent = "Napiš název vozidla."; $("pname").focus(); return; }
+    var d = {};
+    for (var k = 0; k < dimIds.length; k++) { d[dimIds[k]] = num(dimIds[k]); if (!d[dimIds[k]]) { $("psave-msg").textContent = "Vyplň všechny rozměry."; return; } }
+    var ex = vehicles.mine.filter(function (x) { return x.name.toLowerCase() === name.toLowerCase(); })[0];
+    if (ex) { Object.assign(ex, d); vehicles.current = ex.id; }
+    else { var p = Object.assign({ id: "v" + Date.now(), name: name }, d); vehicles.mine.push(p); vehicles.current = p.id; }
+    save("navigace-vozidla", vehicles); renderProfiles();
+    $("psave-msg").textContent = "Uloženo: " + name + ". Příště se nastaví samo.";
   });
-  function save() {
-    try {
-      localStorage.setItem("navigace-vozidlo", JSON.stringify({
-        preset: $("preset").value, h: $("h").value, w: $("w").value, l: $("l").value, t: $("t").value
-      }));
-    } catch (e) {}
-  }
-  (function load() {
-    var s = null;
-    try { s = JSON.parse(localStorage.getItem("navigace-vozidlo") || "null"); } catch (e) {}
-    if (s && s.preset) {
-      $("preset").value = s.preset; applyPreset(s.preset === "custom" ? "truck12" : s.preset);
-      if (s.preset === "custom") { $("preset").value = "custom"; dimIds.forEach(function (id) { if (s[id]) $(id).value = s[id]; }); $("dims").setAttribute("aria-disabled", "false"); }
-    } else applyPreset("truck12");
-  })();
-
+  $("pdel").addEventListener("click", function () {
+    vehicles.mine = vehicles.mine.filter(function (x) { return x.id !== vehicles.current; });
+    vehicles.current = "truck12"; save("navigace-vozidla", vehicles); renderProfiles();
+    $("psave-msg").textContent = "Vozidlo smazáno."; autoRoute();
+  });
+  $("veh-chip").addEventListener("click", function () { $("panel").classList.remove("min"); $("veh-box").open = true; $("veh-box").scrollIntoView({ behavior: "smooth", block: "nearest" }); });
   function costing() {
-    if ($("preset").value === "car") return { name: "auto", opts: { use_highways: 1 } };
-    var num = function (id) { var v = parseFloat(String($(id).value).replace(",", ".")); return isFinite(v) ? v : undefined; };
+    var p = findProfile(vehicles.current);
+    if (p.car) return { name: "auto", opts: { use_highways: 1 } };
     return { name: "truck", opts: { height: num("h"), width: num("w"), length: num("l"), weight: num("t"), use_highways: 1 } };
   }
+
+  // ---------- hlas ----------
+  var voiceCfg = load("navigace-hlas") || { name: null, rate: 1.15, muted: false };
+  var voices = [];
+  var synth = window.speechSynthesis;
+  function voiceScore(v) {
+    var s = 0, nm = v.name;
+    if (/zuzana|vlasta|iveta|female|žena|ženský/i.test(nm)) s += 4;
+    if (/google/i.test(nm)) s += 2;
+    if (/natural|online|neural|premium|enhanced/i.test(nm)) s += 2;
+    if (/jakub|antonin|antonín|male|muž/i.test(nm) && !/female/i.test(nm)) s -= 5;
+    return s;
+  }
+  function loadVoices() {
+    if (!synth) return;
+    voices = synth.getVoices().filter(function (v) { return /^cs/i.test(v.lang); }).sort(function (a, b) { return voiceScore(b) - voiceScore(a); });
+    var sel = $("voice"); sel.textContent = "";
+    if (!voices.length) {
+      var o = el("option", null, "Výchozí hlas zařízení"); o.value = ""; sel.appendChild(o);
+      $("voice-note").textContent = "V tomhle zařízení chybí český hlas. Přidáš ho v nastavení telefonu (Převod textu na řeč) nebo ve Windows (Čas a jazyk → Řeč).";
+    } else {
+      voices.forEach(function (v) { var o = el("option", null, v.name); o.value = v.name; sel.appendChild(o); });
+      if (voiceCfg.name && voices.some(function (v) { return v.name === voiceCfg.name; })) sel.value = voiceCfg.name;
+      $("voice-note").textContent = "Jako první je vybraný ženský hlas, pokud ho zařízení má.";
+    }
+    $("rate").value = String(voiceCfg.rate);
+    $("voice-sum").textContent = voiceCfg.muted ? "ztlumené" : ((sel.options[sel.selectedIndex] || {}).text || "");
+  }
+  function currentVoice() { var nm = $("voice").value; return voices.filter(function (v) { return v.name === nm; })[0] || voices[0] || null; }
+  function say(text, queue) {
+    if (!synth || voiceCfg.muted || !text) return;
+    if (!queue) synth.cancel();
+    var u = new SpeechSynthesisUtterance(text);
+    u.lang = "cs-CZ"; var v = currentVoice(); if (v) u.voice = v;
+    u.rate = voiceCfg.rate; u.pitch = 1.05; u.volume = 1;
+    synth.speak(u);
+  }
+  if (synth) { loadVoices(); synth.onvoiceschanged = loadVoices; }
+  else { $("voice-note").textContent = "Tenhle prohlížeč neumí mluvit. Zkus Chrome, Edge nebo Safari."; }
+  $("voice").addEventListener("change", function () { voiceCfg.name = this.value; save("navigace-hlas", voiceCfg); loadVoices(); });
+  $("rate").addEventListener("change", function () { voiceCfg.rate = parseFloat(this.value); save("navigace-hlas", voiceCfg); });
+  $("voice-test").addEventListener("click", function () { var m = voiceCfg.muted; voiceCfg.muted = false; say("Za 300 metrů odbočte vpravo na Hlavní. Potom vjeďte na kruhový objezd a sjeďte na 2. výjezdu."); voiceCfg.muted = m; });
+  function renderMute() {
+    $("mute").innerHTML = voiceCfg.muted
+      ? '<svg class="i" viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4zM17 9l5 6M22 9l-5 6"/></svg>'
+      : '<svg class="i" viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4zM17 8a5 5 0 0 1 0 8M19.5 5a9 9 0 0 1 0 14"/></svg>';
+    $("mute").setAttribute("aria-label", voiceCfg.muted ? "Zapnout hlas" : "Ztlumit hlas");
+  }
+  $("mute").addEventListener("click", function () { voiceCfg.muted = !voiceCfg.muted; save("navigace-hlas", voiceCfg); if (voiceCfg.muted && synth) synth.cancel(); renderMute(); loadVoices(); });
+  renderMute();
 
   // ---------- výpočet trasy ----------
   function post(path, body) {
     return fetch(VALHALLA + path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
       .then(function (r) { return r.json().then(function (j) { if (!r.ok) { var e = new Error(j.error || r.statusText); e.code = j.error_code; throw e; } return j; }); });
   }
-  function decode(str, precision) {
-    var idx = 0, lat = 0, lng = 0, coords = [], f = Math.pow(10, precision || 6);
-    while (idx < str.length) {
-      var b, shift = 0, res = 0;
-      do { b = str.charCodeAt(idx++) - 63; res |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
-      lat += (res & 1) ? ~(res >> 1) : (res >> 1);
-      shift = 0; res = 0;
-      do { b = str.charCodeAt(idx++) - 63; res |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
-      lng += (res & 1) ? ~(res >> 1) : (res >> 1);
-      coords.push([lat / f, lng / f]);
-    }
-    return coords;
-  }
+  function co(c) { var o = {}; o[c.name] = c.opts; return o; }
   function classify(trip, c) {
-    var shape = trip.legs[0].shape;
     return post("/trace_attributes", {
-      encoded_polyline: shape, shape_match: "edge_walk", costing: c.name, costing_options: (function () { var o = {}; o[c.name] = c.opts; return o; })(),
+      encoded_polyline: trip.legs[0].shape, shape_match: "edge_walk", costing: c.name, costing_options: co(c),
       filters: { attributes: ["edge.road_class", "edge.length", "edge.begin_shape_index", "edge.end_shape_index", "shape"], action: "include" }
     }).then(function (j) {
       var km = {}; GROUPS.forEach(function (g) { km[g.key] = 0; });
-      var pts = decode(j.shape, 6), segs = [];
+      var pts = decode(j.shape), segs = [];
       (j.edges || []).forEach(function (e) {
-        var g = groupOf(e.road_class);
-        km[g] += e.length || 0;
+        var g = groupOf(e.road_class); km[g] += e.length || 0;
         segs.push({ g: g, pts: pts.slice(e.begin_shape_index, e.end_shape_index + 1) });
       });
       trip.km = km; trip.segs = segs;
     }).catch(function () { trip.km = null; trip.segs = null; });
   }
-  function score(trip) {
-    if (!trip.km) return trip.summary.time * 1.5;
-    var total = 0, weighted = 0;
-    GROUPS.forEach(function (g) { total += trip.km[g.key]; weighted += trip.km[g.key] * g.mult; });
-    return trip.summary.time * (total ? weighted / total : 1);
+  function score(t) {
+    if (!t.km) return t.summary.time * 1.5;
+    var tot = 0, w = 0; GROUPS.forEach(function (g) { tot += t.km[g.key]; w += t.km[g.key] * g.mult; });
+    return t.summary.time * (tot ? w / tot : 1);
   }
-  function mainShare(trip) {
-    if (!trip.km) return null;
-    var total = 0; GROUPS.forEach(function (g) { total += trip.km[g.key]; });
-    return total ? (trip.km.motorway + trip.km.primary) / total : null;
+  function mainShare(t) {
+    if (!t.km) return null; var tot = 0; GROUPS.forEach(function (g) { tot += t.km[g.key]; });
+    return tot ? (t.km.motorway + t.km.primary) / tot : null;
   }
-
-  var busy = false;
-  function findRoute() {
-    if (busy) return;
-    if (!state.A || !state.B) { showMsg("warn", "Zadej start i cíl – napiš adresu, nebo klikni do mapy."); return; }
-    busy = true;
-    var btn = $("go"); btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Počítám…';
-    var c = costing(), co = {}; co[c.name] = c.opts;
-    post("/route", {
-      locations: [{ lat: state.A.lat, lon: state.A.lon }, { lat: state.B.lat, lon: state.B.lon }],
-      costing: c.name, costing_options: co, alternates: 3, units: "kilometers", language: "cs-CZ"
+  function pref() { return document.querySelector('input[name="pref"]:checked').value; }
+  function routeLeg(a, b, c) {
+    var from = { lat: a.lat, lon: a.lon };
+    if (a.heading != null) { from.heading = a.heading; from.heading_tolerance = 60; }
+    return post("/route", {
+      locations: [from, { lat: b.lat, lon: b.lon }], costing: c.name, costing_options: co(c),
+      alternates: 3, units: "kilometers", language: "cs-CZ"
     }).then(function (j) {
-      var trips = [j.trip].concat((j.alternates || []).map(function (a) { return a.trip; }));
-      trips.forEach(function (t, i) { t.idx = i; t.shapePts = decode(t.legs[0].shape, 6); });
-      return Promise.all(trips.map(function (t) { return classify(t, c); })).then(function () { return trips; });
-    }).then(function (trips) {
-      var pref = document.querySelector('input[name="pref"]:checked').value;
-      var best = 0;
-      if (pref === "main") trips.forEach(function (t, i) { if (score(t) < score(trips[best])) best = i; });
-      state.trips = trips; state.sel = best; state.pref = pref;
-      render(true);
-    }).catch(function (e) {
-      routeLayer.clearLayers(); state.trips = [];
-      if (e.code === 442 || e.code === 171) {
-        showMsg("err", "Trasu se nepodařilo najít. Start nebo cíl nejspíš leží v místě, kam vozidlo s těmito rozměry nesmí (třeba centrum se zákazem nákladních aut). Zkus bod posunout na hlavní silnici, nebo změnit rozměry.");
-      } else if (e.code === 154 || e.code === 155) {
-        showMsg("err", "Start a cíl jsou od sebe příliš daleko pro veřejný výpočetní server. Zkus kratší trasu.");
-      } else {
-        showMsg("err", "Výpočet trasy selhal (" + (e.message || "chyba sítě") + "). Zkontroluj připojení k internetu a zkus to znovu.");
-      }
-    }).then(function () { busy = false; btn.disabled = false; btn.textContent = "Najít trasu"; });
+      var trips = [j.trip].concat((j.alternates || []).map(function (x) { return x.trip; }));
+      trips.forEach(function (t, i) { t.idx = i; t.pts = decode(t.legs[0].shape); });
+      return Promise.all(trips.map(function (t) { return classify(t, c); })).then(function () {
+        var sel = 0;
+        if (pref() === "main") trips.forEach(function (t, i) { if (score(t) < score(trips[sel])) sel = i; });
+        return { trips: trips, sel: sel };
+      });
+    });
   }
-  $("go").addEventListener("click", findRoute);
-  $("swap").addEventListener("click", function () {
-    var a = state.A, b = state.B;
-    state.A = null; state.B = null;
-    if (b) setPoint("A", b.lat, b.lon, b.label); else { $("from").value = ""; if (markers.A) { map.removeLayer(markers.A); delete markers.A; } }
-    if (a) setPoint("B", a.lat, a.lon, a.label); else { $("to").value = ""; if (markers.B) { map.removeLayer(markers.B); delete markers.B; } }
-    if (state.A && state.B) findRoute();
-  });
-  document.querySelectorAll('input[name="pref"]').forEach(function (r) {
-    r.addEventListener("change", function () { if (state.A && state.B) findRoute(); });
-  });
+  function buildPlan() {
+    var pts = [], segs = [], mans = [], time = 0, length = 0, legEnds = [], km = {}, known = true;
+    GROUPS.forEach(function (g) { km[g.key] = 0; });
+    state.legs.forEach(function (leg, li) {
+      var t = leg.trips[leg.sel], off = pts.length, last = li === state.legs.length - 1;
+      t.pts.forEach(function (p) { pts.push(p); });
+      t.legs[0].maneuvers.forEach(function (m) {
+        if (li > 0 && (m.type === 1 || m.type === 2 || m.type === 3)) {
+          m = Object.assign({}, m, { verbal_pre_transition_instruction: m.verbal_pre_transition_instruction });
+        }
+        if (!last && isEnd(m)) {
+          m = Object.assign({}, m, { instruction: "Zastávka " + pinLetter(li + 1), verbal_pre_transition_instruction: "Dorazili jste na zastávku.", verbal_transition_alert_instruction: "Dorazíte na zastávku." });
+        }
+        mans.push(Object.assign({}, m, { idx: off + m.begin_shape_index, leg: li }));
+      });
+      if (t.segs) t.segs.forEach(function (s) { segs.push(s); }); else known = false;
+      if (t.km) GROUPS.forEach(function (g) { km[g.key] += t.km[g.key]; });
+      time += t.summary.time; length += t.summary.length; legEnds.push(pts.length - 1);
+    });
+    var cum = [0];
+    for (var i = 1; i < pts.length; i++) cum.push(cum[i - 1] + hav(pts[i - 1], pts[i]));
+    mans.forEach(function (m) { m.at = cum[Math.min(m.idx, cum.length - 1)]; });
+    state.plan = { pts: pts, segs: known ? segs : null, mans: mans, time: time, length: length, legEnds: legEnds, cum: cum, km: known ? km : null };
+  }
+  var busy = 0;
+  function findRoute(opts) {
+    opts = opts || {};
+    var pts = opts.from ? [opts.from].concat(opts.rest) : state.stops;
+    if (!pts.every(Boolean)) return Promise.resolve(false);
+    var my = ++busy, c = costing();
+    if (!opts.silent) {
+      var out = $("out"); out.textContent = "";
+      var p = el("p", "hint"); p.innerHTML = '<span class="spinner"></span> '; p.appendChild(document.createTextNode("Počítám trasu…")); out.appendChild(p);
+    }
+    var legs = [];
+    for (var i = 0; i < pts.length - 1; i++) legs.push(routeLeg(pts[i], pts[i + 1], c));
+    return Promise.all(legs).then(function (res) {
+      if (my !== busy) return false;
+      state.legs = res; buildPlan();
+      if (!opts.silent) render(true);
+      return true;
+    }).catch(function (e) {
+      if (my !== busy) return false;
+      if (opts.silent) { toast("Přepočet trasy se nepovedl, zkusím to znovu."); return false; }
+      clearRoute();
+      var t;
+      if (e.code === 442 || e.code === 171) t = "Trasa nenalezena. Některý bod nejspíš leží tam, kam vozidlo s těmito rozměry nesmí (třeba centrum se zákazem nákladních aut). Posuň bod na hlavní silnici, nebo změň rozměry.";
+      else if (e.code === 154 || e.code === 155) t = "Trasa je na veřejný výpočetní server příliš dlouhá.";
+      else t = "Výpočet trasy selhal (" + (e.message || "chyba sítě") + "). Zkontroluj připojení a zkus to znovu.";
+      $("out").textContent = ""; $("out").appendChild(el("p", "msg err", t));
+      return false;
+    });
+  }
+  document.querySelectorAll('input[name="pref"]').forEach(function (r) { r.addEventListener("change", autoRoute); });
+  function clearRoute() {
+    busy++; state.legs = []; state.plan = null; $("out").textContent = "";
+    mapReady.then(function () { ["alts", "route", "done"].forEach(function (s) { map.getSource(s).setData({ type: "FeatureCollection", features: [] }); }); });
+  }
 
   // ---------- vykreslení ----------
-  function fmtTime(s) {
-    var m = Math.round(s / 60), h = Math.floor(m / 60);
-    return h ? h + " h " + (m % 60) + " min" : m + " min";
-  }
-  function fmtKm(km) { return km < 1 ? Math.round(km * 1000) + " m" : km.toFixed(km < 10 ? 1 : 0).replace(".", ",") + " km"; }
-  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
-  function showMsg(kind, text) { out.textContent = ""; out.appendChild(el("p", "msg " + kind, text)); }
-  var ICONS = { 1: "●", 2: "●", 3: "●", 4: "⚑", 5: "⚑", 6: "⚑", 7: "↑", 8: "↑", 9: "↗", 10: "→", 11: "↘", 12: "↷", 13: "↶", 14: "↙", 15: "←", 16: "↖",
-    17: "↑", 18: "↗", 19: "↖", 20: "↗", 21: "↖", 22: "↑", 23: "↗", 24: "↖", 25: "⤨", 26: "⟳", 27: "⟳", 28: "⛴", 29: "⛴" };
-
-  function render(fit) {
-    var trips = state.trips, sel = trips[state.sel];
-    routeLayer.clearLayers();
-    // alternativy pod hlavní trasou
-    trips.forEach(function (t, i) {
-      if (i === state.sel) return;
-      var pl = L.polyline(t.shapePts, { color: cssVar("--muted"), weight: 6, opacity: .55, dashArray: "8 8" }).addTo(routeLayer);
-      pl.on("click", function (e) { L.DomEvent.stop(e); state.sel = i; render(false); });
-    });
-    L.polyline(sel.shapePts, { color: "#ffffff", weight: 9, opacity: .9 }).addTo(routeLayer);
-    if (sel.segs) sel.segs.forEach(function (s) {
-      var g = GROUPS.filter(function (x) { return x.key === s.g; })[0];
-      if (s.pts.length > 1) L.polyline(s.pts, { color: cssVar(g.css), weight: 5, opacity: 1 }).addTo(routeLayer);
-    });
-    else L.polyline(sel.shapePts, { color: cssVar("--accent"), weight: 5 }).addTo(routeLayer);
-    if (fit) map.fitBounds(L.latLngBounds(sel.shapePts), { padding: [30, 30] });
-
-    out.textContent = "";
-    var sum = el("div", "summary");
-    sum.appendChild(el("span", "big", fmtTime(sel.summary.time)));
-    sum.appendChild(el("span", "big", fmtKm(sel.summary.length)));
-    var arr = new Date(Date.now() + sel.summary.time * 1000);
-    sum.appendChild(el("span", "sub", "příjezd kolem " + arr.toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" })));
-    out.appendChild(sum);
-
-    if (sel.km) {
-      var sec = el("section"); sec.appendChild(el("h2", null, "Po jakých silnicích"));
-      var total = 0; GROUPS.forEach(function (g) { total += sel.km[g.key]; });
-      var bar = el("div", "bar");
-      GROUPS.forEach(function (g) { var i = el("i"); i.style.width = (100 * sel.km[g.key] / total) + "%"; i.style.background = "var(" + g.css + ")"; bar.appendChild(i); });
-      sec.appendChild(bar);
-      var lg = el("div", "legend");
-      GROUPS.forEach(function (g) {
-        var sw = el("span", "sw"); sw.style.background = "var(" + g.css + ")";
-        lg.appendChild(sw); lg.appendChild(el("span", null, g.name)); lg.appendChild(el("span", "km", fmtKm(sel.km[g.key])));
+  function drawRoute() {
+    var plan = state.plan; if (!plan) return;
+    mapReady.then(function () {
+      var alts = [];
+      if (state.legs.length === 1) state.legs[0].trips.forEach(function (t, i) {
+        if (i !== state.legs[0].sel) alts.push({ type: "Feature", properties: { idx: i }, geometry: { type: "LineString", coordinates: t.pts.map(ll) } });
       });
-      sec.appendChild(lg);
-      out.appendChild(sec);
+      map.getSource("alts").setData({ type: "FeatureCollection", features: alts });
+      map.getSource("done").setData({ type: "FeatureCollection", features: [] });
+      var feats = [];
+      if (plan.segs) plan.segs.forEach(function (s) {
+        var g = GROUPS.filter(function (x) { return x.key === s.g; })[0];
+        if (s.pts.length > 1) feats.push({ type: "Feature", properties: { color: cssVar(g.css) }, geometry: { type: "LineString", coordinates: s.pts.map(ll) } });
+      });
+      else feats = lineFC(plan.pts.map(ll), { color: cssVar("--accent") }).features;
+      map.getSource("route").setData({ type: "FeatureCollection", features: feats });
+    });
+  }
+  function fitRoute() {
+    var plan = state.plan; if (!plan) return;
+    var b = new maplibregl.LngLatBounds();
+    plan.pts.forEach(function (p) { b.extend([p[1], p[0]]); });
+    var mobile = window.innerWidth <= 760, ph = $("panel").offsetHeight;
+    map.fitBounds(b, { padding: mobile ? { top: 40, bottom: Math.min(ph, window.innerHeight * .62) + 20, left: 30, right: 30 } : { top: 50, bottom: 50, left: 440, right: 70 }, duration: 700, bearing: 0, pitch: 0 });
+  }
+  function render(fit) {
+    var plan = state.plan; drawRoute(); if (fit) fitRoute();
+    var out = $("out"); out.textContent = "";
+    var sum = el("div", "summary");
+    sum.appendChild(el("span", "big", fmtTime(plan.time)));
+    sum.appendChild(el("span", "km", fmtKm(plan.length)));
+    sum.appendChild(el("span", "eta", "příjezd " + clock(plan.time)));
+    out.appendChild(sum);
+    if (plan.km) {
+      var tot = 0; GROUPS.forEach(function (g) { tot += plan.km[g.key]; });
+      var bar = el("div", "bar"), lg = el("div", "legend");
+      GROUPS.forEach(function (g) {
+        if (plan.km[g.key] < 0.05) return;
+        var i = el("i"); i.style.width = (100 * plan.km[g.key] / tot) + "%"; i.style.background = "var(" + g.css + ")"; bar.appendChild(i);
+        var s = el("span"), sw = el("i"); sw.style.background = "var(" + g.css + ")"; s.appendChild(sw); s.appendChild(document.createTextNode(g.name + " " + fmtKm(plan.km[g.key]))); lg.appendChild(s);
+      });
+      out.appendChild(bar); out.appendChild(lg);
     }
+    var goRow = el("div", "go-row");
+    var go = el("button", "btn go"); go.innerHTML = '<svg class="i" viewBox="0 0 24 24"><path d="M12 3 4 21l8-4 8 4z"/></svg>'; go.appendChild(document.createTextNode("Spustit navigaci"));
+    go.addEventListener("click", function () { startNav(false); });
+    var sim = el("button", "btn sec", "Jízda nanečisto"); sim.title = "Projede trasu bez GPS, ať slyšíš pokyny";
+    sim.addEventListener("click", function () { startNav(true); });
+    goRow.appendChild(go); goRow.appendChild(sim); out.appendChild(goRow);
 
     var c = costing();
-    if (c.name === "truck") {
-      var n = function (v) { return String(v).replace(".", ","); };
-      out.appendChild(el("p", "msg warn", "Trasa respektuje výšku " + n(c.opts.height) + " m, šířku " + n(c.opts.width) + " m, délku " + n(c.opts.length) + " m a hmotnost " + n(c.opts.weight) + " t všude, kde jsou omezení zapsaná v mapě OpenStreetMap. Mapa ale nemá všechna omezení, takže dopravní značky mají vždy přednost."));
-    }
+    if (c.name === "truck") out.appendChild(el("p", "msg warn", "Trasa hlídá výšku " + n(c.opts.height) + " m, šířku " + n(c.opts.width) + " m, délku " + n(c.opts.length) + " m a hmotnost " + n(c.opts.weight) + " t tam, kde jsou omezení v mapě. Dopravní značky mají vždy přednost."));
 
-    if (trips.length > 1) {
-      var vs = el("section"); vs.appendChild(el("h2", null, "Varianty"));
-      var box = el("div", "variants");
-      var fastest = Math.min.apply(null, trips.map(function (t) { return t.summary.time; }));
-      trips.forEach(function (t, i) {
-        var b = el("button", "variant" + (i === state.sel ? " on" : ""));
+    if (state.legs.length === 1 && state.legs[0].trips.length > 1) {
+      var leg = state.legs[0], vs = el("div", "variants");
+      var fastest = Math.min.apply(null, leg.trips.map(function (t) { return t.summary.time; }));
+      leg.trips.forEach(function (t, i) {
+        var b = el("button", "variant" + (i === leg.sel ? " on" : ""));
         var share = mainShare(t);
-        b.appendChild(el("b", null, (i === state.sel ? "Vybraná · " : "Varianta " + (i + 1) + " · ") + fmtKm(t.summary.length)));
+        b.appendChild(el("b", null, (i === leg.sel ? "Vybraná" : "Varianta " + (i + 1)) + " · " + fmtKm(t.summary.length)));
         b.appendChild(el("span", "t", fmtTime(t.summary.time)));
         var note = [];
         if (share != null) note.push(Math.round(share * 100) + " % po dálnicích a I. třídách");
-        if (t.summary.time === fastest) note.push("nejrychlejší");
-        else note.push("+" + Math.max(1, Math.round((t.summary.time - fastest) / 60)) + " min");
+        note.push(t.summary.time === fastest ? "nejrychlejší" : "+" + Math.max(1, Math.round((t.summary.time - fastest) / 60)) + " min");
         b.appendChild(el("span", "s", note.join(" · ")));
-        b.addEventListener("click", function () { state.sel = i; render(false); });
-        box.appendChild(b);
+        b.addEventListener("click", function () { leg.sel = i; buildPlan(); render(false); });
+        vs.appendChild(b);
       });
-      vs.appendChild(box); out.appendChild(vs);
+      out.appendChild(vs);
     }
-
-    var st = el("section"); st.appendChild(el("h2", null, "Navigační pokyny"));
-    var ol = el("ol", "steps");
-    sel.legs[0].maneuvers.forEach(function (m) {
-      var li = el("li");
-      li.tabIndex = 0;
-      li.appendChild(el("span", "ico", ICONS[m.type] || "↑"));
-      li.appendChild(el("span", null, m.instruction));
-      li.appendChild(el("span", "d", m.length ? fmtKm(m.length) : ""));
-      var go = function () { var p = sel.shapePts[m.begin_shape_index]; if (p) map.setView(p, 16); };
-      li.addEventListener("click", go);
-      li.addEventListener("keydown", function (e) { if (e.key === "Enter") go(); });
+    var det = el("details", "box"), sm = el("summary", null, "Pokyny na trase"); sm.appendChild(el("span", "sum-r", String(plan.mans.length)));
+    det.appendChild(sm);
+    var inner = el("div", "inner"), ol = el("ol", "steps");
+    plan.mans.forEach(function (m) {
+      var li = el("li"); li.tabIndex = 0;
+      var ic = el("span", "ico"); ic.innerHTML = icon(m.type);
+      li.appendChild(ic); li.appendChild(el("span", null, m.instruction)); li.appendChild(el("span", "d", m.length ? fmtKm(m.length) : ""));
+      var goTo = function () { var p = plan.pts[m.idx]; if (p) map.flyTo({ center: ll(p), zoom: 16 }); };
+      li.addEventListener("click", goTo); li.addEventListener("keydown", function (e) { if (e.key === "Enter") goTo(); });
       ol.appendChild(li);
     });
-    st.appendChild(ol); out.appendChild(st);
+    inner.appendChild(ol); det.appendChild(inner); out.appendChild(det);
   }
 
-  // ---------- ukázková trasa po otevření ----------
-  setPoint("A", 50.0281, 15.2000, "Kolín");
-  setPoint("B", 49.3961, 15.5912, "Jihlava");
-  findRoute();
+  // ---------- navigace ----------
+  var nav = { active: false };
+  var puck = null, wakeLock = null;
+  function makePuck() {
+    var d = el("div", "puck");
+    d.innerHTML = '<svg viewBox="0 0 44 44"><circle cx="22" cy="22" r="19" fill="' + cssVar("--accent") + '" stroke="#fff" stroke-width="3"/><path d="M22 10 30 31 22 26 14 31z" fill="#fff"/></svg>';
+    return new maplibregl.Marker({ element: d, rotationAlignment: "map", pitchAlignment: "map" });
+  }
+  function requestWake() {
+    try { if (navigator.wakeLock) navigator.wakeLock.request("screen").then(function (w) { wakeLock = w; }).catch(function () {}); } catch (e) {}
+  }
+  document.addEventListener("visibilitychange", function () { if (nav.active && document.visibilityState === "visible") requestWake(); });
+
+  function startNav(sim) {
+    if (!state.plan) return;
+    if (!sim && !navigator.geolocation) { toast("Tohle zařízení nezná polohu."); return; }
+    if (synth) { var u = new SpeechSynthesisUtterance(" "); u.volume = 0; synth.speak(u); } // odemkne řeč (iPhone)
+    nav = { active: true, sim: sim, lastIdx: 0, off: 0, spoken: { "0n": true, "0f": true }, k: -1, speed: 0, follow: true, lastFix: null,
+      rerouting: false, lastReroute: 0, simAlong: 0, simX: 3, arrived: false, along: 0, lastDraw: null };
+    document.body.classList.add("nav");
+    ["banner", "navbar", "speed"].forEach(function (id) { $(id).hidden = false; });
+    $("recenter").hidden = true;
+    $("sim-speed").hidden = !sim; $("sim-speed").textContent = "×" + nav.simX;
+    markers.forEach(function (m, i) { if (i === 0) m.remove(); });
+    if (!puck) puck = makePuck();
+    var p0 = state.plan.pts[0]; puck.setLngLat(ll(p0)).setRotation(0).addTo(map);
+    mapReady.then(function () { map.getSource("alts").setData({ type: "FeatureCollection", features: [] }); drawProgress(0, p0); });
+    requestWake();
+    var first = state.plan.mans[0];
+    var firstTxt = fixText(first.verbal_pre_transition_instruction || first.instruction);
+    if (/Poté|Potom/.test(firstTxt)) nav.spoken["1f"] = true; // další manévr už zazněl v úvodní větě
+    say(firstTxt + " Do cíle je " + sayDist(state.plan.length * 1000) + ".");
+    $("b-icon").innerHTML = icon(first.type); $("b-dist").textContent = fmtDist(state.plan.mans[1] ? state.plan.mans[1].at : 0); $("b-text").textContent = first.instruction;
+    if (sim) { nav.timer = setInterval(simTick, 200); }
+    else {
+      $("b-dist").textContent = "GPS…"; $("b-text").textContent = "Čekám na polohu.";
+      nav.watch = navigator.geolocation.watchPosition(function (p) {
+        var c = p.coords, v = c.speed;
+        if (v == null || isNaN(v)) {
+          if (nav.lastFix) { var dt = (p.timestamp - nav.lastFix.t) / 1000; v = dt > 0 ? hav(nav.lastFix.p, [c.latitude, c.longitude]) / dt : 0; } else v = 0;
+        }
+        nav.lastFix = { p: [c.latitude, c.longitude], t: p.timestamp };
+        onFix([c.latitude, c.longitude], v, c.accuracy || 20, c.heading);
+      }, function (err) {
+        toast(err.code === 1 ? "Přístup k poloze je zakázaný. Povol ho v nastavení prohlížeče a spusť navigaci znovu." : "Čekám na signál GPS…", 6000);
+      }, { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 });
+    }
+  }
+  function stopNav() {
+    if (nav.timer) clearInterval(nav.timer);
+    if (nav.watch != null) navigator.geolocation.clearWatch(nav.watch);
+    nav.active = false; if (synth) synth.cancel();
+    try { if (wakeLock) wakeLock.release(); } catch (e) {}
+    wakeLock = null;
+    document.body.classList.remove("nav");
+    ["banner", "navbar", "speed", "recenter"].forEach(function (id) { $(id).hidden = true; });
+    if (puck) puck.remove();
+    syncMarkers();
+    map.easeTo({ pitch: 0, bearing: 0, padding: { top: 0, bottom: 0, left: 0, right: 0 }, duration: 400 });
+    if (state.plan) { render(false); setTimeout(fitRoute, 450); }
+  }
+  $("stop-nav").addEventListener("click", stopNav);
+  $("sim-speed").addEventListener("click", function () { nav.simX = nav.simX === 1 ? 3 : nav.simX === 3 ? 8 : 1; this.textContent = "×" + nav.simX; });
+  $("recenter").addEventListener("click", function () { nav.follow = true; $("recenter").hidden = true; });
+  map.on("dragstart", function () { if (nav.active) { nav.follow = false; $("recenter").hidden = false; } });
+
+  function pointAt(along) {
+    var plan = state.plan, cum = plan.cum, i = Math.max(0, nav.simIdx || 0);
+    while (i < cum.length - 2 && cum[i + 1] < along) i++;
+    while (i > 0 && cum[i] > along) i--;
+    nav.simIdx = i;
+    var segLen = cum[i + 1] - cum[i], t = segLen ? (along - cum[i]) / segLen : 0;
+    var a = plan.pts[i], b = plan.pts[i + 1] || a;
+    return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+  }
+  function maneuverAt(along) {
+    var ms = state.plan.mans, r = ms[0];
+    for (var i = 0; i < ms.length; i++) { if (ms[i].at <= along + 0.5) r = ms[i]; else break; }
+    return r;
+  }
+  function simTick() {
+    var plan = state.plan; if (!plan) return;
+    var m = maneuverAt(nav.simAlong), v = m && m.time > 0 ? Math.min(36, (m.length * 1000) / m.time) : 14;
+    nav.simAlong = Math.min(plan.cum[plan.cum.length - 1], nav.simAlong + v * 0.2 * nav.simX);
+    onFix(pointAt(nav.simAlong), v, 5);
+    if (nav.arrived && nav.timer) { clearInterval(nav.timer); nav.timer = null; }
+  }
+  function snap(p) {
+    var pts = state.plan.pts, best = { d: Infinity, i: 0, t: 0, q: p };
+    function scan(a, b) {
+      for (var i = a; i <= b; i++) { var r = project(p, pts[i], pts[i + 1]); if (r.d < best.d) { best = r; best.i = i; } }
+    }
+    scan(Math.max(0, nav.lastIdx - 3), Math.min(pts.length - 2, nav.lastIdx + 400));
+    if (best.d > 80) scan(0, pts.length - 2);
+    var cum = state.plan.cum;
+    best.along = cum[best.i] + best.t * (cum[best.i + 1] - cum[best.i]);
+    return best;
+  }
+  function onFix(p, v, acc, gpsHeading) {
+    if (!nav.active || !state.plan) return;
+    var plan = state.plan;
+    nav.speed = nav.speed ? nav.speed * 0.5 + v * 0.5 : v;
+    $("spd").textContent = Math.round(nav.speed * 3.6);
+    var s = snap(p);
+    var offLimit = Math.max(35, Math.min(acc, 60) * 1.2);
+    var onRoute = s.d <= offLimit;
+    nav.off = onRoute ? 0 : nav.off + 1;
+    if (nav.off >= 3 && !nav.rerouting && Date.now() - nav.lastReroute > 8000) reroute(p);
+    if (onRoute) { nav.lastIdx = s.i; nav.along = s.along; }
+    var pos = onRoute ? s.q : p;
+    var a = plan.pts[s.i], b = plan.pts[Math.min(s.i + 1, plan.pts.length - 1)];
+    var hd = onRoute ? bearing(a, b) : (gpsHeading != null && !isNaN(gpsHeading) && nav.speed > 2 ? gpsHeading : (nav.prevPos ? bearing(nav.prevPos, p) : 0));
+    nav.prevPos = p;
+    puck.setLngLat(ll(pos)).setRotation(hd);
+    if (nav.follow) {
+      var z = nav.speed > 22 ? 15.2 : nav.speed > 12 ? 16 : 16.8;
+      map.easeTo({ center: ll(pos), bearing: hd, pitch: 55, zoom: z, padding: { top: window.innerHeight * 0.42, bottom: 90, left: 0, right: 0 }, duration: nav.sim ? 200 : 900, easing: function (t) { return t; } });
+    }
+    if (onRoute && (nav.lastDraw == null || Math.abs(nav.lastDraw - s.i) >= 2)) { nav.lastDraw = s.i; drawProgress(s.i, pos); }
+    guidance(onRoute ? nav.along : null);
+  }
+  function drawProgress(i, pos) {
+    var plan = state.plan;
+    mapReady.then(function () {
+      map.getSource("route").setData(lineFC([ll(pos)].concat(plan.pts.slice(i + 1).map(ll)), { color: cssVar("--accent") }));
+      map.getSource("done").setData(lineFC(plan.pts.slice(0, i + 1).map(ll).concat([ll(pos)])));
+    });
+  }
+  function guidance(along) {
+    var plan = state.plan, ms = plan.mans;
+    if (along == null) { $("b-dist").textContent = "Mimo trasu"; $("b-text").textContent = "Přepočítávám trasu…"; $("b-then").hidden = true; return; }
+    var k = ms.length - 1;
+    for (var i = 1; i < ms.length; i++) { if (ms[i].at > along + 3) { k = i; break; } }
+    var m = ms[k], dist = Math.max(0, m.at - along), v = Math.max(nav.speed, 4);
+    // po projetí manévru: "Pokračujte X kilometrů"
+    if (k !== nav.k) {
+      if (nav.k >= 0 && dist > 2500 && !nav.spoken[k + "c"]) { say("Pokračujte " + sayDist(dist) + ".", true); }
+      nav.spoken[k + "c"] = true; nav.k = k;
+    }
+    var farD = v > 22 ? 1500 : v > 14 ? 700 : 300;
+    var nearD = Math.max(40, v * 7);
+    if (!nav.spoken[k + "f"] && dist <= farD && dist > nearD + v * 6 + 40) {
+      nav.spoken[k + "f"] = true;
+      say("Za " + sayDist(dist) + " " + lc(fixText(m.verbal_transition_alert_instruction || m.verbal_pre_transition_instruction || m.instruction)));
+    }
+    if (!nav.spoken[k + "n"] && dist <= nearD) {
+      nav.spoken[k + "n"] = nav.spoken[k + "f"] = true;
+      var txt = fixText(m.verbal_pre_transition_instruction || m.instruction);
+      var nx = ms[k + 1];
+      if (nx && !/Poté|Potom/.test(txt) && nx.at - m.at < 250 && !isEnd(nx)) {
+        txt += " Potom " + lc(fixText(nx.verbal_transition_alert_instruction || nx.instruction));
+        nav.spoken[(k + 1) + "f"] = true;
+      }
+      say(txt);
+    }
+    // pruh nahoře
+    $("b-icon").innerHTML = icon(m.type);
+    $("b-dist").textContent = fmtDist(dist);
+    $("b-text").textContent = m.instruction;
+    var nx2 = ms[k + 1], th = $("b-then");
+    if (nx2 && nx2.at - m.at < 400 && dist < 1500) { th.hidden = false; th.innerHTML = "Potom " + icon(nx2.type); th.appendChild(document.createTextNode(" " + nx2.instruction)); }
+    else th.hidden = true;
+    // zbývá
+    var cur = ms[Math.max(0, k - 1)], rest = 0;
+    for (var j = k; j < ms.length; j++) rest += ms[j].time || 0;
+    var curLen = (m.at - cur.at) || 1; rest += (cur.time || 0) * Math.min(1, dist / curLen);
+    var left = plan.cum[plan.cum.length - 1] - along;
+    $("n-time").textContent = fmtTime(rest);
+    $("n-sub").textContent = fmtKm(left / 1000) + " · příjezd " + clock(rest);
+    if (isEnd(m) && k === ms.length - 1 && dist < 25 && !nav.arrived) {
+      nav.arrived = true; $("b-dist").textContent = "Cíl"; $("b-text").textContent = "Jste v cíli."; $("n-time").textContent = "V cíli";
+    }
+  }
+  function reroute(p) {
+    nav.rerouting = true; nav.lastReroute = Date.now();
+    say("Přepočítávám trasu.");
+    var plan = state.plan, legIdx = 0;
+    while (legIdx < plan.legEnds.length - 1 && plan.legEnds[legIdx] < nav.lastIdx) legIdx++;
+    var rest = state.stops.slice(legIdx + 1);
+    var hd = nav.prevPos ? Math.round(bearing(nav.prevPos, p)) : null;
+    findRoute({ silent: true, from: { lat: p[0], lon: p[1], heading: hd }, rest: rest }).then(function (ok) {
+      nav.rerouting = false;
+      if (!ok || !nav.active) return;
+      nav.lastIdx = 0; nav.off = 0; nav.spoken = { "0n": true, "0f": true }; nav.k = -1; nav.along = 0; nav.lastDraw = null;
+      drawProgress(0, p);
+    });
+  }
+
+  // ---------- panel na mobilu ----------
+  $("handle").addEventListener("click", function () { $("panel").classList.toggle("min"); });
+
+  // ---------- start ----------
+  renderProfiles();
+  renderStops();
+  if (!load("navigace-ukazka")) {
+    save("navigace-ukazka", true);
+    setStop(0, 50.0281, 15.2000, "Kolín"); setStop(1, 49.3961, 15.5912, "Jihlava");
+    mapReady.then(function () { findRoute(); });
+  }
 }
 (function () {
   var HASH = "cc8a220845d48740b42f5aa01faeffeb4f1583535b640324b1ff68e761b4fe6d";
